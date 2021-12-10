@@ -1,4 +1,4 @@
-package com.example.face_id_plus
+package com.misit.face_id_plus
 
 import io.flutter.embedding.android.FlutterActivity
 

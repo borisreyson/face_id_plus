@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/splash.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 String? _jam;
 String? _menit;
@@ -19,6 +22,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  MapAreModel? _area;
+  Completer<GoogleMapController> _map_controller = Completer();
+static final CameraPosition _kGooglePlex = CameraPosition(target: LatLng(-0.5634222, 117.0139606),zoom: 14.4746);
   @override
   void initState() {
     nama = "";
@@ -32,7 +38,9 @@ class _HomePageState extends State<HomePage> {
       DateTime now = DateTime.now();
       _tanggal = "${fmt.format(now)}";
       Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
+      _loadAreaMaps();
     });
+
     super.initState();
   }
 
@@ -51,126 +59,126 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF21BFBD),
+      appBar: AppBar(
+        actions: <Widget>[
+          IconButton(
+            onPressed: () {
+              _showMyDialog();
+            },
+            icon: Icon(Icons.menu),
+            color: Colors.white,
+          ),
+        ],
+        backgroundColor: Color(0xFF21BFBD),
+        elevation: 0,
+      ),
+      backgroundColor: const Color(0xFFFFFFFF),
       body: Column(
         children: <Widget>[
-          _header(),
           _headerContent(),
-          _contents(),
-        ],
-      ),
-    );
-  }
+          SizedBox(height: 10),
+          Expanded(
+            child: IntrinsicHeight(
+              child: GoogleMap(initialCameraPosition: _kGooglePlex,
+                mapType: MapType.hybrid,
+                onMapCreated: (GoogleMapController controller){
+                  _map_controller.complete(controller);
+                },
 
-  Widget _header() {
-    return Container(
-      child: Padding(
-        padding: const EdgeInsets.only(left: 10.0,top: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            SizedBox(
-              width: 100.0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () {
-                      _showMyDialog();
-                    },
-                    icon: Icon(Icons.menu),
-                    color: Colors.white,
-                  ),
-                ],
               ),
-            )
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _headerContent() {
     return Container(
-      height: MediaQuery.of(context).size.height/5,
-      child: Column(
-        children: <Widget>[
-          Row(
-            children: const [
-              Padding(
-                padding: EdgeInsets.only(left: 20.0),
-                child: Text(
-                  "Selamat Datang,",
-                  style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15.0),
-                ),
+      padding: EdgeInsets.only(bottom: 20),
+      child: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.only(bottom: 55),
+            color: Color(0xFF21BFBD),
+            child: Column(
+            children: <Widget>[
+              Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.only(left: 20.0),
+                    child: Text(
+                      "Selamat Datang,",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15.0),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 40.0),
+                    child: Text(
+                      "${nama}",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Colors.white,
+                          fontSize: 15.0),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 60.0),
+                    child: Text(
+                      "${nik}",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Colors.white,
+                          fontSize: 15.0),
+                    ),
+                  ),
+                ],
               ),
             ],
+        ),
           ),
-          Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(left: 40.0),
-                child: Text(
-                  "${nama}",
-                  style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      color: Colors.white,
-                      fontSize: 15.0),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(left: 60.0),
-                child: Text(
-                  "${nik}",
-                  style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      color: Colors.white,
-                      fontSize: 15.0),
-                ),
-              ),
-            ],
-          ),
-        ],
+          _contents(),
+        ]
       ),
     );
   }
 
   Widget _contents() {
-    return Container(
-      height: MediaQuery.of(context).size.height,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2E638),
-        borderRadius: BorderRadius.all(Radius.circular(75.0)),
+    return Card(
+      elevation: 10,
+      margin: EdgeInsets.only(top:60,left: 20,right: 20),
+      color: Color(0xFFF2E638),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            _jamWidget(),
+            _btnAbsen()
+          ],
+        ),
       ),
-      child: _jamWidget()
-      
     );
   }
 
   Widget _jamWidget() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 35.0),
-          child: Text(
-            "${_tanggal}",
-            style:
-                TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 20),
+          padding: const EdgeInsets.only(bottom: 5),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 "$_jam",
@@ -210,7 +218,14 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        
+        Center(
+          child: Text(
+            "${_tanggal}",
+            style:
+            TextStyle(color: Colors.black87),
+          ),
+        ),
+
       ],
     );
   }
@@ -219,59 +234,36 @@ class _HomePageState extends State<HomePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          decoration: const BoxDecoration(
-            color: Colors.amber,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(50.0)),
-          ),
-          child: ListView(
-            children: [
-              Container(
-                padding: EdgeInsets.only(right: 5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(right: 2.5),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.green
-                        ),
-                        child:  Text("Masuk",style: TextStyle(color: Colors.white),),
-                          
-                          onPressed: () {  },
-                            ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 2.5),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(primary: Colors.red),
-                      child: Text("Pulang",style: TextStyle(color: Colors.white),),
-                            onPressed: (){
-
-                            },
-                          ),
-                    ),
-                  ],
-                ),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: 2.5),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                primary: Colors.green
               ),
-            _listAbsen()
-            ],
+              child:  Text("Masuk",style: TextStyle(color: Colors.white),),
+
+                onPressed: () {  },
+                  ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 2.5),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(primary: Colors.red),
+            child: Text("Pulang",style: TextStyle(color: Colors.white),),
+                  onPressed: (){
+
+                  },
+                ),
           ),
         ),
       ],
     );
   }
   Widget _listAbsen() {
-    return Container(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      decoration: const BoxDecoration(
-        color: Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.only(topRight: Radius.circular(20.0)),
-      ),
+    return IntrinsicHeight(
       child: ListView(
         primary: false,
         padding: const EdgeInsets.only(left: 10.0, right: 5.0),
@@ -279,12 +271,11 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.only(top: 45.0),
             child: SizedBox(
-              height: MediaQuery.of(context).size.height,
               child: ListView(
                 children: const <Widget>[
                   SizedBox(
                     height: 300.0,
-                    child: Text("Boris"),
+                    child: Text("Bor3is"),
                   ),
                   SizedBox(
                     height: 300.0,
@@ -395,5 +386,11 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+  _loadAreaMaps() async{
+    var map = await MapAreModel.mapAreaApi("0").then((value) {
+      _area = value;
+      print("${_area!.lat}");
+    });
   }
 }

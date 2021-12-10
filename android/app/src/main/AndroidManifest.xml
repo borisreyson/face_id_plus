@@ -1,9 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.face_id_plus">
+    package="com.misit.face_id_plus">
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
    <application
-        android:label="face_id_plus"
+       android:allowBackup="true"
+       android:supportsRtl="true"
+       android:label="Face ID Plus"
         android:icon="@mipmap/ic_launcher">
-        <activity
+       <meta-data
+           android:name="com.google.android.geo.API_KEY"
+           android:value="AIzaSyCsXzEGdV26YCeuNCLXK13opA4g4nbsalM" />
+
+       <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
