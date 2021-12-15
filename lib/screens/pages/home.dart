@@ -25,6 +25,10 @@ class _HomePageState extends State<HomePage> {
   String? _tanggal;
   String? nama, nik;
   int? isLogin = 0;
+  double _masuk=1.0;
+  double _pulang=1.0;
+  double _diluarAbp = 0.0;
+  bool outside = true;
   late Position currentPosition;
   var geoLocator = Geolocator();
   // late final Permission _permission = Permission.location;
@@ -130,11 +134,25 @@ class _HomePageState extends State<HomePage> {
                     });
                     _polygons.add(Polygon(polygonId: PolygonId("ABP"),points: pointAbp,strokeWidth: 2,strokeColor: Colors.red,fillColor: Colors.white.withOpacity(0.3)));
                     print("areaMaps 1 ${_polygons}");
+                    LatLng myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
+                    bool _insideAbp = _checkIfValidMarker(myLocation,pointAbp);
+                    if(_insideAbp){
+                      _diluarAbp=0.0;
+                      _masuk =1.0;
+                      _pulang =1.0;
+                      outside=true;
+                    }else{
+                      outside=false;
+                      _diluarAbp=1.0;
+                      _masuk =0.0;
+                      _pulang =0.0;
+                    }
+                    print("InsideAbp ${_insideAbp}");
                     return _loadMaps(_polygons);
                   }else{
                     print("areaMaps 2");
                     _loadArea();
-                    return CircularProgressIndicator();
+                    return Center(child: CircularProgressIndicator());
                   }
                 },
               ),
@@ -162,6 +180,36 @@ class _HomePageState extends State<HomePage> {
     var area = await MapAreModel.mapAreaApi("0");
     return area;
   }
+  bool _checkIfValidMarker(LatLng tap, List<LatLng> vertices) {
+    int intersectCount = 0;
+    for (int j = 0; j < vertices.length - 1; j++) {
+      if (rayCastIntersect(tap, vertices[j], vertices[j + 1])) {
+        intersectCount++;
+      }
+    }
+
+    return ((intersectCount % 2) == 1); // odd = inside, even = outside;
+  }
+  bool rayCastIntersect(LatLng tap, LatLng vertA, LatLng vertB) {
+    double aY = vertA.latitude;
+    double bY = vertB.latitude;
+    double aX = vertA.longitude;
+    double bX = vertB.longitude;
+    double pY = tap.latitude;
+    double pX = tap.longitude;
+
+    if ((aY > pY && bY > pY) || (aY < pY && bY < pY) || (aX < pX && bX < pX)) {
+      return false; // a and b can't both be above or below pt.y, and a or
+      // b must be east of pt.x
+    }
+
+    double m = (aY - bY) / (aX - bX); // Rise over run
+    double bee = (-aX) * m + aY; // y = mx + b
+    double x = (pY - bee) / m; // algebra is neat!
+
+    return x > pX;
+  }
+
   Widget _headerContent() {
     return Container(
       padding: EdgeInsets.only(bottom: 20),
@@ -234,7 +282,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             _jamWidget(),
-            _btnAbsen()
+            (outside)?_btnAbsen():diluarArea()
           ],
         ),
       ),
@@ -304,34 +352,54 @@ class _HomePageState extends State<HomePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(right: 2.5),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                primary: Colors.green
-              ),
-              child:  Text("Masuk",style: TextStyle(color: Colors.white),),
-
-                onPressed: () {  },
-                  ),
+          child: Opacity(
+            opacity: _masuk,
+            child: Padding(
+              padding: EdgeInsets.only(right: 2.5),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.green
+                ),
+                child:  Text("Masuk",style: TextStyle(color: Colors.white),),
+                  onPressed: () {  },
+                    ),
+            ),
           ),
         ),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(left: 2.5),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: Colors.red),
-            child: Text("Pulang",style: TextStyle(color: Colors.white),),
-                  onPressed: (){
+          child: Opacity(
+            opacity: _pulang,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 2.5),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(primary: Colors.red),
+              child: Text("Pulang",style: TextStyle(color: Colors.white),),
+                    onPressed: (){
 
-                  },
-                ),
+                    },
+                  ),
+            ),
           ),
-        ),
+        )
       ],
     );
   }
-
+  Widget diluarArea() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(child: Opacity(
+            opacity: _diluarAbp,
+            child: Container(
+              margin: EdgeInsets.only(top: 20),
+              color: Colors.white,
+              child: Padding(padding: const EdgeInsets.all(10),
+                  child: Center(child: Text("Anda Diluar Area PT Alamjaya Bara Pratama",style: TextStyle(color: Colors.red),))),
+            )
+        ))
+      ],
+    );
+  }
   _logOut() async {
     var _pref = await SharedPreferences.getInstance();
     var isLogin = _pref.getInt("isLogin");
