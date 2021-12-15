@@ -1,9 +1,12 @@
 
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:face_id_plus/loading.dart';
+import 'package:face_id_plus/services/location_service.dart';
 import 'package:flutter/material.dart';
 import "package:flutter/services.dart";
 import 'dart:io' show Platform;
+
+import 'package:provider/provider.dart';
 
 Future main() async {
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp,DeviceOrientation.portraitDown]);
@@ -15,11 +18,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: _mainPage()
+          return StreamProvider(initialData:UserLocation(-0.5634222, 117.0139606),create: (BuildContext context) { LocationService().locationStream; },
+          child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: _mainPage()
+          ));
 
-          );
   }
   _mainPage(){
     if(Platform.isAndroid){

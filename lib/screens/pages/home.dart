@@ -1,20 +1,14 @@
 import 'dart:async';
 import 'package:face_id_plus/model/map_area.dart';
+import 'package:face_id_plus/services/location_service.dart';
 import 'package:face_id_plus/splash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:location/location.dart' as locationDart;
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-String? _jam;
-String? _menit;
-String? _detik;
-String? _tanggal;
-String? nama, nik;
-int? isLogin = 0;
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -24,15 +18,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String? _jam;
+  String? _menit;
+  String? _detik;
+  String? _tanggal;
+  String? nama, nik;
+  int? isLogin = 0;
   late Position currentPosition;
   var geoLocator = Geolocator();
-
-  late final Permission _permission = Permission.location;
+  // late final Permission _permission = Permission.location;
   MapAreModel? _area;
   Completer<GoogleMapController> _map_controller = Completer();
   late GoogleMapController _googleMapController;
   static final CameraPosition _kGooglePlex = CameraPosition(target: LatLng(-0.5634222, 117.0139606),zoom: 14.4746);
-  late locationDart.Location _location = locationDart.Location();
   Future<void> locatePosition() async{
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     currentPosition = position;
@@ -44,9 +42,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    _permissionForStatus();
-    _locationUpdate();
-
+    // _permissionForStatus();
     nama = "";
     nik = "";
     _jam = "07";
@@ -63,30 +59,23 @@ class _HomePageState extends State<HomePage> {
 
     super.initState();
   }
-  _locationUpdate() async{
-    await _location.onLocationChanged.listen((myLocation) {
-      LatLng latLngPosition = LatLng(myLocation.latitude!, myLocation.longitude!);
-      CameraPosition cameraPosition = new CameraPosition(target: latLngPosition,zoom:14.4756);
-      _googleMapController.moveCamera(CameraUpdate.newCameraPosition(cameraPosition));
-    });
-  }
-  _permissionForStatus() async{
-    final status = await _permission.status;
-    if(status.isDenied){
-      _permissionForStatus();
-    }
-    if(await Permission.location.isRestricted){
-      openAppSettings();
-    }
-    if(await Permission.location.isGranted){
-      print("$status");
-      locatePosition();
-    }
-    if(await Permission.location.isPermanentlyDenied){
-      _permissionForStatus();
-     }
-    await [Permission.location,Permission.locationWhenInUse].request();
-  }
+  // _permissionForStatus() async{
+  //   final status = await _permission.status;
+  //   if(status.isDenied){
+  //     _permissionForStatus();
+  //   }
+  //   if(await Permission.location.isRestricted){
+  //     openAppSettings();
+  //   }
+  //   if(await Permission.location.isGranted){
+  //     print("$status");
+  //     locatePosition();
+  //   }
+  //   if(await Permission.location.isPermanentlyDenied){
+  //     _permissionForStatus();
+  //    }
+  //   await [Permission.location,Permission.locationWhenInUse].request();
+  // }
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
     isLogin = sharedPref.getInt("isLogin")!;
@@ -101,6 +90,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    UserLocation userLocation = Provider.of<UserLocation>(context);
+    print("UserLocation Lat: ${userLocation.latitude} | Lng : ${userLocation.longitude}");
     return _mainContent();
   }
   Widget _mainContent(){
