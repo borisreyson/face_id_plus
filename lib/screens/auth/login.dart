@@ -4,6 +4,8 @@ import 'package:face_id_plus/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 class FormLogin extends StatefulWidget {
   const FormLogin({Key? key}) : super(key: key);
@@ -14,7 +16,7 @@ class FormLogin extends StatefulWidget {
 class _FormLoginState extends State<FormLogin> {
   final GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
-  bool _autoValidate = false;
+  AutovalidateMode _autoValidate = AutovalidateMode.disabled;
   late FocusNode _usernameFocus, _passwordFocus;
   late String _username, _password;
   FaceLoginModel? postLogins;
@@ -88,7 +90,7 @@ class _FormLoginState extends State<FormLogin> {
       });
     } else {
       Future.delayed(const Duration(milliseconds: 1000), () {
-        _autoValidate = true;
+        _autoValidate = AutovalidateMode.always;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Username/Nik Atau Password Tidak Boleh Kosong!!")));
         _usernameFocus.requestFocus();
@@ -150,7 +152,7 @@ class _FormLoginState extends State<FormLogin> {
         padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: Form(
             key: _formKey,
-            autovalidate: _autoValidate,
+            autovalidateMode: _autoValidate,
             child: ListView(
               children: <Widget>[
                 Padding(
