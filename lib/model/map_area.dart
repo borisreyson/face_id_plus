@@ -4,8 +4,8 @@ import 'dart:convert';
 class MapAreModel {
   int? idLok;
   String? company;
-  String? lat;
-  String? lng;
+  double? lat;
+  double? lng;
   String? flag;
   String? timeUpdate;
   MapAreModel(
@@ -27,15 +27,15 @@ class MapAreModel {
     );
   }
 
-  static Future<MapAreModel?> mapAreaApi(String _company) async {
+  static Future<List<MapAreModel>?> mapAreaApi(String _company) async {
     String apiUrl = "https://abpjobsite.com/absen/map/area?company="+_company;
     var apiResult = await http.get(Uri.parse(apiUrl));
     var jsonObject = json.decode(apiResult.body);
-    var dataLogin = (jsonObject as Map<String, dynamic>)['mapArea'];
-    if (dataLogin !=null) {
-      return MapAreModel.fromJason(dataLogin);
+    var dataLogin = (jsonObject['mapArea'] as List).map((e) => MapAreModel.fromJason(e)).toList();
+    if (dataLogin.length>0) {
+      return dataLogin;
     } else {
-      return null;
+      return dataLogin;
     }
   }
 }

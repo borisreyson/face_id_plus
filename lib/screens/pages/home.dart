@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/services/location_service.dart';
 import 'package:face_id_plus/splash.dart';
@@ -54,7 +55,7 @@ class _HomePageState extends State<HomePage> {
       DateTime now = DateTime.now();
       _tanggal = "${fmt.format(now)}";
       Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
-      _loadAreaMaps();
+
     });
 
     super.initState();
@@ -117,7 +118,7 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: IntrinsicHeight(
               child: FutureBuilder(
-                future: locatePosition(),
+                future: _loadArea(),
                 builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot){
                   return GoogleMap(initialCameraPosition: _kGooglePlex,
                     mapType: MapType.hybrid,
@@ -137,6 +138,20 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+  Future<void> _loadArea() async{
+    Set<Polygon> _mapArea=HashSet<Polygon>();
+    List<LatLng> _latLng = [];
+    List<MapAreModel> _areas=[];
+    return await MapAreModel.mapAreaApi("0").then((value){
+      _areas = value!;
+      print("mapAreas ${_areas}");
+      if(_areas!=null){
+          _areas.forEach((element) {
+            _latLng.add(LatLng(element.lat!, element.lng!));
+          });
+        }
+    });
   }
   Widget _headerContent() {
     return Container(
@@ -307,65 +322,6 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
-  Widget _listAbsen() {
-    return IntrinsicHeight(
-      child: ListView(
-        primary: false,
-        padding: const EdgeInsets.only(left: 10.0, right: 5.0),
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 45.0),
-            child: SizedBox(
-              child: ListView(
-                children: const <Widget>[
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Bor3is"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  ),
-                  SizedBox(
-                    height: 300.0,
-                    child: Text("Boris"),
-                  )
-                ],
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
 
   _logOut() async {
     var _pref = await SharedPreferences.getInstance();
@@ -431,11 +387,5 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-  }
-  _loadAreaMaps() async{
-    var map = await MapAreModel.mapAreaApi("0").then((value) {
-      _area = value;
-      print("${_area!.lat}");
-    });
   }
 }
