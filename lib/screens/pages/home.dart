@@ -3,6 +3,7 @@ import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/splash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart' as locationDart;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -31,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   Completer<GoogleMapController> _map_controller = Completer();
   late GoogleMapController _googleMapController;
   static final CameraPosition _kGooglePlex = CameraPosition(target: LatLng(-0.5634222, 117.0139606),zoom: 14.4746);
-
+  late locationDart.Location _location = locationDart.Location();
   Future<void> locatePosition() async{
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     currentPosition = position;
@@ -40,11 +41,11 @@ class _HomePageState extends State<HomePage> {
     print("New Location");
     return await _googleMapController.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
-  updateLocation()async{
-  }
+
   @override
   void initState() {
     _permissionForStatus();
+    _locationUpdate();
 
     nama = "";
     nik = "";
@@ -62,7 +63,13 @@ class _HomePageState extends State<HomePage> {
 
     super.initState();
   }
-
+  _locationUpdate() async{
+    await _location.onLocationChanged.listen((myLocation) {
+      LatLng latLngPosition = LatLng(myLocation.latitude!, myLocation.longitude!);
+      CameraPosition cameraPosition = new CameraPosition(target: latLngPosition,zoom:14.4756);
+      _googleMapController.moveCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    });
+  }
   _permissionForStatus() async{
     final status = await _permission.status;
     if(status.isDenied){
@@ -94,6 +101,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    return _mainContent();
+  }
+  Widget _mainContent(){
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
@@ -137,7 +147,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
   Widget _headerContent() {
     return Container(
       padding: EdgeInsets.only(bottom: 20),
