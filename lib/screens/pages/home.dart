@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     currentPosition = position;
     LatLng latLngPosition = LatLng(position.latitude, position.longitude);
-    CameraPosition cameraPosition = new CameraPosition(target: latLngPosition,zoom:14.4756);
+    CameraPosition cameraPosition = new CameraPosition(target: latLngPosition,zoom:20.4756);
     print("New Location");
     return await _googleMapController.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }

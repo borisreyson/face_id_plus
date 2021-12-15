@@ -151,7 +151,6 @@ class _FormLoginState extends State<FormLogin> {
         padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: Form(
             key: _formKey,
-            autovalidateMode: _autoValidate,
             child: ListView(
               children: <Widget>[
                 Padding(
@@ -224,20 +223,19 @@ class _FormLoginState extends State<FormLogin> {
                 const SizedBox(
                   height: 16.0,
                 ),
-                Expanded(
-                    child: RoundedLoadingButton(
-                        controller: _roundedController,
-                        onPressed: () {
-                          _roundedController.start();
-                          _onLogin(context);
-                        },
-                        child: const Text(
-                          "Masuk",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                          ),
-                        ))),
+                RoundedLoadingButton(
+                    controller: _roundedController,
+                    onPressed: () {
+                      _roundedController.start();
+                      _onLogin(context);
+                    },
+                    child: const Text(
+                      "Masuk",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    )),
               ],
             )),
       )),

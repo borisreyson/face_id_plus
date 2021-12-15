@@ -145,12 +145,14 @@ class _SplashState extends State<Splash> {
 
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
-    isLogin = sharedPref.getInt("isLogin")!;
-    if (isLogin == 1) {
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (BuildContext context) => const HomePage()));
+    if(sharedPref.getInt("isLogin")!=null){
+      isLogin = sharedPref.getInt("isLogin")!;
+      if (isLogin == 1) {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (BuildContext context) => const HomePage()));
+      }
     }
   }
 }
