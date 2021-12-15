@@ -6,7 +6,7 @@ class MapAreModel {
   String? company;
   double? lat;
   double? lng;
-  String? flag;
+  int? flag;
   String? timeUpdate;
   MapAreModel(
       {this.idLok,
@@ -27,15 +27,10 @@ class MapAreModel {
     );
   }
 
-  static Future<List<MapAreModel>?> mapAreaApi(String _company) async {
+  static Future<List<MapAreModel>> mapAreaApi(String _company) async {
     String apiUrl = "https://abpjobsite.com/absen/map/area?company="+_company;
     var apiResult = await http.get(Uri.parse(apiUrl));
     var jsonObject = json.decode(apiResult.body);
-    var dataLogin = (jsonObject['mapArea'] as List).map((e) => MapAreModel.fromJason(e)).toList();
-    if (dataLogin.length>0) {
-      return dataLogin;
-    } else {
-      return dataLogin;
-    }
+    return (jsonObject['mapArea'] as List).map((e) => MapAreModel.fromJason(e)).toList();
   }
 }

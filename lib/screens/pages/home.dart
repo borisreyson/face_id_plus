@@ -117,20 +117,25 @@ class _HomePageState extends State<HomePage> {
           SizedBox(height: 10),
           Expanded(
             child: IntrinsicHeight(
-              child: FutureBuilder(
+              child: FutureBuilder<List<MapAreModel>>(
                 future: _loadArea(),
                 builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot){
-                  return GoogleMap(initialCameraPosition: _kGooglePlex,
-                    mapType: MapType.hybrid,
-                    onMapCreated: (GoogleMapController controller){
-                      _map_controller.complete(controller);
-                      _googleMapController = controller;
-                      locatePosition();
-                    },
-                    myLocationEnabled: true,
-                    zoomControlsEnabled: true,
-                    zoomGesturesEnabled: true,
-                  );
+                  locatePosition();
+                if(snapshot.hasData){
+                    List<LatLng> pointAbp = [];
+                    List<MapAreModel> data = snapshot.data;
+                    List<Polygon> _polygons = [];
+                    data.forEach((p) {
+                      pointAbp.add(LatLng(p.lat!, p.lng!));
+                    });
+                    _polygons.add(Polygon(polygonId: PolygonId("ABP"),points: pointAbp,strokeWidth: 2,strokeColor: Colors.red,fillColor: Colors.white.withOpacity(0.3)));
+                    print("areaMaps 1 ${_polygons}");
+                    return _loadMaps(_polygons);
+                  }else{
+                    print("areaMaps 2");
+                    _loadArea();
+                    return CircularProgressIndicator();
+                  }
                 },
               ),
             ),
@@ -139,19 +144,23 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  Future<void> _loadArea() async{
-    Set<Polygon> _mapArea=HashSet<Polygon>();
-    List<LatLng> _latLng = [];
-    List<MapAreModel> _areas=[];
-    return await MapAreModel.mapAreaApi("0").then((value){
-      _areas = value!;
-      print("mapAreas ${_areas}");
-      if(_areas!=null){
-          _areas.forEach((element) {
-            _latLng.add(LatLng(element.lat!, element.lng!));
-          });
-        }
-    });
+  Widget _loadMaps(List<Polygon> _shape){
+    return GoogleMap(initialCameraPosition: _kGooglePlex,
+      mapType: MapType.hybrid,
+      onMapCreated: (GoogleMapController controller){
+        _map_controller.complete(controller);
+        _googleMapController = controller;
+        locatePosition();
+      },
+      polygons: Set<Polygon>.of(_shape),
+      myLocationEnabled: true,
+      zoomControlsEnabled: true,
+      zoomGesturesEnabled: true,
+    );
+  }
+  Future<List<MapAreModel>> _loadArea() async{
+    var area = await MapAreModel.mapAreaApi("0");
+    return area;
   }
   Widget _headerContent() {
     return Container(
