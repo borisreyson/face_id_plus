@@ -3,10 +3,11 @@ import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/splash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:geolocator/geolocator.dart';
 String? _jam;
 String? _menit;
 String? _detik;
@@ -22,11 +23,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late Position currentPosition;
+  var geoLocator = Geolocator();
+
+  late final Permission _permission = Permission.location;
   MapAreModel? _area;
   Completer<GoogleMapController> _map_controller = Completer();
-static final CameraPosition _kGooglePlex = CameraPosition(target: LatLng(-0.5634222, 117.0139606),zoom: 14.4746);
+  late GoogleMapController _googleMapController;
+  static final CameraPosition _kGooglePlex = CameraPosition(target: LatLng(-0.5634222, 117.0139606),zoom: 14.4746);
+
+  Future<void> locatePosition() async{
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    currentPosition = position;
+    LatLng latLngPosition = LatLng(position.latitude, position.longitude);
+    CameraPosition cameraPosition = new CameraPosition(target: latLngPosition,zoom:14.4756);
+    print("New Location");
+    return await _googleMapController.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+  }
+  updateLocation()async{
+  }
   @override
   void initState() {
+    _permissionForStatus();
+
     nama = "";
     nik = "";
     _jam = "07";
@@ -44,6 +63,23 @@ static final CameraPosition _kGooglePlex = CameraPosition(target: LatLng(-0.5634
     super.initState();
   }
 
+  _permissionForStatus() async{
+    final status = await _permission.status;
+    if(status.isDenied){
+      _permissionForStatus();
+    }
+    if(await Permission.location.isRestricted){
+      openAppSettings();
+    }
+    if(await Permission.location.isGranted){
+      print("$status");
+      locatePosition();
+    }
+    if(await Permission.location.isPermanentlyDenied){
+      _permissionForStatus();
+     }
+    await [Permission.location,Permission.locationWhenInUse].request();
+  }
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
     isLogin = sharedPref.getInt("isLogin")!;
@@ -79,12 +115,21 @@ static final CameraPosition _kGooglePlex = CameraPosition(target: LatLng(-0.5634
           SizedBox(height: 10),
           Expanded(
             child: IntrinsicHeight(
-              child: GoogleMap(initialCameraPosition: _kGooglePlex,
-                mapType: MapType.hybrid,
-                onMapCreated: (GoogleMapController controller){
-                  _map_controller.complete(controller);
+              child: FutureBuilder(
+                future: locatePosition(),
+                builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot){
+                  return GoogleMap(initialCameraPosition: _kGooglePlex,
+                    mapType: MapType.hybrid,
+                    onMapCreated: (GoogleMapController controller){
+                      _map_controller.complete(controller);
+                      _googleMapController = controller;
+                      locatePosition();
+                    },
+                    myLocationEnabled: true,
+                    zoomControlsEnabled: true,
+                    zoomGesturesEnabled: true,
+                  );
                 },
-
               ),
             ),
           ),
