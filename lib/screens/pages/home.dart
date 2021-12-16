@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'package:face_id_plus/model/map_area.dart';
+import 'package:face_id_plus/screens/pages/profile.dart';
 import 'package:face_id_plus/services/location_service.dart';
 import 'package:face_id_plus/splash.dart';
 import 'package:flutter/cupertino.dart';
@@ -105,7 +106,7 @@ class _HomePageState extends State<HomePage> {
         actions: <Widget>[
           IconButton(
             onPressed: () {
-              _showMyDialog();
+              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>Profile()));
             },
             icon: Icon(Icons.menu),
             color: Colors.white,
@@ -137,15 +138,15 @@ class _HomePageState extends State<HomePage> {
                     LatLng myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
                     bool _insideAbp = _checkIfValidMarker(myLocation,pointAbp);
                     if(_insideAbp){
-                      _diluarAbp=0.0;
-                      _masuk =1.0;
-                      _pulang =1.0;
-                      outside=true;
+                      // _diluarAbp=0.0;
+                      // _masuk =1.0;
+                      // _pulang =1.0;
+                      // outside=true;
                     }else{
-                      outside=false;
-                      _diluarAbp=1.0;
-                      _masuk =0.0;
-                      _pulang =0.0;
+                      // outside=false;
+                      // _diluarAbp=1.0;
+                      // _masuk =0.0;
+                      // _pulang =0.0;
                     }
                     print("InsideAbp ${_insideAbp}");
                     return _loadMaps(_polygons);
@@ -422,46 +423,36 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _showMyDialog() async {
-    return showDialog<void>(
+  showAlertDialog(BuildContext context) {
+
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("Ya, Keluar"),
+      onPressed: () { },
+    );
+
+    // set up the button
+    Widget noButton = TextButton(
+      child: Text("Batal"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("My title"),
+      content: Text("This is my message."),
+      actions: [
+        okButton,noButton
+      ],
+    );
+
+    // show the dialog
+    showDialog(
       context: context,
-      barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
-        return Dialog(
-          child: Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    Text('This is a demo alert dialog.'),
-                    SizedBox(
-                      height: 10.0,
-                    ),
-                    Text('Would you like to approve of this message?'),
-                    SizedBox(
-                      height: 10.0,
-                    ),
-                    InkWell(
-                      onTap: () {},
-                      child: Text("Keluar"),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.maybePop(context);
-                      },
-                      child: Text("Tutup"),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-        );
+        return alert;
       },
     );
   }
