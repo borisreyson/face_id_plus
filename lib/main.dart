@@ -1,11 +1,9 @@
-
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:face_id_plus/loading.dart';
 import 'package:face_id_plus/services/location_service.dart';
 import 'package:flutter/material.dart';
 import "package:flutter/services.dart";
 import 'dart:io' show Platform;
-
 import 'package:provider/provider.dart';
 
 Future main() async {

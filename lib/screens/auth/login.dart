@@ -6,7 +6,6 @@ import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-
 class FormLogin extends StatefulWidget {
   const FormLogin({Key? key}) : super(key: key);
   @override
@@ -43,6 +42,7 @@ class _FormLoginState extends State<FormLogin> {
     _formKey.currentState?.dispose();
     super.dispose();
   }
+
   _onLogin(BuildContext context) async {
     final form = _formKey.currentState;
     if (form!.validate()) {
@@ -66,18 +66,17 @@ class _FormLoginState extends State<FormLogin> {
 
           Future.delayed(const Duration(milliseconds: 1000), () {
             _roundedController.success();
-            
+
             Future.delayed(const Duration(milliseconds: 1000), () {
-              Navigator.maybePop(context);
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (BuildContext context) => const HomePage()));
+              Navigator.pushAndRemoveUntil(context,MaterialPageRoute(
+                  builder: (BuildContext context) => const HomePage()),(context)=>false);
             });
           });
         } else {
           _usernameFocus.requestFocus();
           Future.delayed(const Duration(milliseconds: 1000), () {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Username/ Nik Atau Password Salah!!")));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("Username/ Nik Atau Password Salah!!")));
             _roundedController.error();
             _usernameController.clear();
             _passwordController.clear();
@@ -93,14 +92,21 @@ class _FormLoginState extends State<FormLogin> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Username/Nik Atau Password Tidak Boleh Kosong!!")));
         _usernameFocus.requestFocus();
-          _roundedController.reset();
-        
+        _roundedController.reset();
       });
     }
   }
 
-  setPref(int login, String? nik, String? nama, String? departemen, String? jabatan,
-      String? devisi,String? flag, String? perusahaan, String? showAbsen) async {
+  setPref(
+      int login,
+      String? nik,
+      String? nama,
+      String? departemen,
+      String? jabatan,
+      String? devisi,
+      String? flag,
+      String? perusahaan,
+      String? showAbsen) async {
     sharedPref = await SharedPreferences.getInstance();
     sharedPref?.setInt("isLogin", login);
     sharedPref?.setString("nik", nik!);
@@ -117,8 +123,10 @@ class _FormLoginState extends State<FormLogin> {
     sharedPref = await SharedPreferences.getInstance();
     isLogin = sharedPref?.getInt("isLogin");
     if (isLogin == 1) {
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (BuildContext context) => const HomePage()));
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => const HomePage()),(context)=>false);
     } else {
       print("$isLogin || Not Login");
     }
@@ -138,16 +146,20 @@ class _FormLoginState extends State<FormLogin> {
         elevation: 0,
         leading: InkWell(
           splashColor: const Color(0xff000000),
-          child: const Icon(Icons.arrow_back_ios_new,color: Color(0xff000000),),
+          child: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xff000000),
+          ),
           onTap: () {
-            Navigator.pushReplacement(context,MaterialPageRoute(builder: (context)=>const Splash()));
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const Splash()));
           },
         ),
       ),
       key: _globalKey,
       body: SafeArea(
           child: Container(
-            color: const Color(0xffffffff),
+        color: const Color(0xffffffff),
         padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: Form(
             key: _formKey,
@@ -169,7 +181,8 @@ class _FormLoginState extends State<FormLogin> {
                   focusNode: _usernameFocus,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                      border: OutlineInputBorder(), labelText: "Username / NIK"),
+                      border: OutlineInputBorder(),
+                      labelText: "Username / NIK"),
                   onSaved: (value) {
                     _username = value!;
                   },
