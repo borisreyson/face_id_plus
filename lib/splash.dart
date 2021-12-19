@@ -19,6 +19,8 @@ class _SplashState extends State<Splash> {
     super.initState();
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     return _main();
@@ -54,7 +56,9 @@ class _SplashState extends State<Splash> {
                   height: 80,
                 ),
                 _title(),
-                SizedBox(height: 90,),
+                SizedBox(
+                  height: 90,
+                ),
                 _submitButton(),
                 const SizedBox(
                   height: 20,
@@ -139,13 +143,20 @@ class _SplashState extends State<Splash> {
   Widget _title() {
     return Padding(
       padding: EdgeInsets.only(left: 30, right: 30),
-      child: Text("ABSENSI",style: TextStyle(color: Color(0xFF003F63),fontSize: 30,fontWeight: FontWeight.bold,fontFamily: "RaleWay"),),
+      child: Text(
+        "ABSENSI",
+        style: TextStyle(
+            color: Color(0xFF003F63),
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            fontFamily: "RaleWay"),
+      ),
     );
   }
 
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
-    if(sharedPref.getInt("isLogin")!=null){
+    if (sharedPref.getInt("isLogin") != null) {
       isLogin = sharedPref.getInt("isLogin")!;
       if (isLogin == 1) {
         Navigator.pushReplacement(

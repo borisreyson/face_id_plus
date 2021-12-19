@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/screens/pages/absen_masuk.dart';
 import 'package:face_id_plus/screens/pages/profile.dart';
-import 'package:face_id_plus/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,17 +25,17 @@ class _HomePageState extends State<HomePage> {
   String? _tanggal;
   String? nama, nik;
   int? isLogin = 0;
-  double _masuk = 1.0;
-  double _pulang = 1.0;
-  double _diluarAbp = 0.0;
+  final double _masuk = 1.0;
+  final double _pulang = 1.0;
+  final double _diluarAbp = 0.0;
   bool outside = true;
   late Position currentPosition;
   late LatLng myLocation;
 
   var geoLocator = Geolocator();
-  Completer<GoogleMapController> _map_controller = Completer();
+  final _map_controller = Completer();
   late GoogleMapController _googleMapController;
-  static final CameraPosition _kGooglePlex =
+  static const CameraPosition _kGooglePlex =
       CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 6.4746);
   Future<void> locatePosition() async {
     Position position = await Geolocator.getCurrentPosition(
@@ -45,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
     LatLng latLngPosition = LatLng(position.latitude, position.longitude);
     CameraPosition cameraPosition =
-        new CameraPosition(target: latLngPosition, zoom: 14.4756);
+        CameraPosition(target: latLngPosition, zoom: 14.4756);
     return await _googleMapController
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
@@ -63,8 +62,8 @@ class _HomePageState extends State<HomePage> {
       getPref(context);
       DateFormat fmt = DateFormat("dd MMMM yyyy");
       DateTime now = DateTime.now();
-      _tanggal = "${fmt.format(now)}";
-      Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
+      _tanggal = fmt.format(now);
+      Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
     });
     super.initState();
   }
@@ -83,20 +82,20 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (BuildContext context) => Profile()));
+                      builder: (BuildContext context) => const Profile()));
             },
-            icon: Icon(Icons.menu),
+            icon: const Icon(Icons.menu),
             color: Colors.white,
           ),
         ],
-        backgroundColor: Color(0xFF21BFBD),
+        backgroundColor: const Color(0xFF21BFBD),
         elevation: 0,
       ),
       backgroundColor: const Color(0xFFFFFFFF),
       body: Column(
         children: <Widget>[
           (Platform.isAndroid) ? _headerContent() : _headerIos(),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Expanded(
             child: IntrinsicHeight(child: _futureBuilder()),
           ),
@@ -109,16 +108,15 @@ class _HomePageState extends State<HomePage> {
     return FutureBuilder<List<MapAreModel>>(
       future: _loadArea(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        locatePosition();
         if (snapshot.hasData) {
           List<LatLng> pointAbp = [];
           List<MapAreModel> data = snapshot.data;
           List<Polygon> _polygons = [];
-          data.forEach((p) {
+          for (var p in data) {
             pointAbp.add(LatLng(p.lat!, p.lng!));
-          });
+          }
           _polygons.add(Polygon(
-              polygonId: PolygonId("ABP"),
+              polygonId: const PolygonId("ABP"),
               points: pointAbp,
               strokeWidth: 2,
               strokeColor: Colors.red,
@@ -135,13 +133,26 @@ class _HomePageState extends State<HomePage> {
             // _masuk = 0.0;
             // _pulang = 0.0;
           }
-          return _loadMaps(_polygons);
+          var status = _permissionStatus();
+          if (status.isGranted) {
+            locatePosition();
+
+            return _loadMaps(_polygons);
+          } else {
+            _requestLocation();
+            return const Center(child: CircularProgressIndicator());
+          }
         } else {
           _loadArea();
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );
+  }
+
+  _permissionStatus() async {
+    var status = await _permission.status;
+    return status;
   }
 
   Widget _loadMaps(List<Polygon> _shape) {
@@ -162,11 +173,11 @@ class _HomePageState extends State<HomePage> {
 
   Widget _headerContent() {
     return Container(
-      padding: EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Stack(children: [
         Container(
-          padding: EdgeInsets.only(bottom: 55),
-          color: Color(0xFF21BFBD),
+          padding: const EdgeInsets.only(bottom: 55),
+          color: const Color(0xFF21BFBD),
           child: Column(
             children: <Widget>[
               Row(
@@ -187,10 +198,10 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(left: 40.0),
+                    padding: const EdgeInsets.only(left: 40.0),
                     child: Text(
-                      "${nama}",
-                      style: TextStyle(
+                      "$nama",
+                      style: const TextStyle(
                           fontFamily: 'Montserrat',
                           color: Colors.white,
                           fontSize: 15.0),
@@ -201,10 +212,10 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(left: 60.0),
+                    padding: const EdgeInsets.only(left: 60.0),
                     child: Text(
-                      "${nik}",
-                      style: TextStyle(
+                      "$nik",
+                      style: const TextStyle(
                           fontFamily: 'Montserrat',
                           color: Colors.white,
                           fontSize: 15.0),
@@ -221,59 +232,57 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _headerIos() {
-    return Container(
-      child: Stack(children: [
-        Container(
-          padding: EdgeInsets.only(bottom: 55),
-          color: Color(0xFF21BFBD),
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.only(left: 10.0),
-                    child: Text(
-                      "Selamat Datang,",
-                      style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold),
-                    ),
+    return Stack(children: [
+      Container(
+        padding: const EdgeInsets.only(bottom: 55),
+        color: const Color(0xFF21BFBD),
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: const [
+                Padding(
+                  padding: EdgeInsets.only(left: 10.0),
+                  child: Text(
+                    "Selamat Datang,",
+                    style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
                   ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(left: 40.0),
-                    child: Text(
-                      "${nama}",
-                      style: TextStyle(
-                          fontFamily: 'Montserrat', color: Colors.white),
-                    ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 40.0),
+                  child: Text(
+                    "$nama",
+                    style: const TextStyle(
+                        fontFamily: 'Montserrat', color: Colors.white),
                   ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(left: 60.0),
-                    child: Text(
-                      "${nik}",
-                      style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          color: Colors.white,
-                          fontSize: 15.0),
-                    ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 60.0),
+                  child: Text(
+                    "$nik",
+                    style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.white,
+                        fontSize: 15.0),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
-        _contents(),
-      ]),
-    );
+      ),
+      _contents(),
+    ]);
   }
 
   Widget _contents() {
@@ -341,8 +350,8 @@ class _HomePageState extends State<HomePage> {
         ),
         Center(
           child: Text(
-            "${_tanggal}",
-            style: TextStyle(color: Colors.black87),
+            "$_tanggal",
+            style: const TextStyle(color: Colors.black87),
           ),
         ),
       ],
@@ -397,8 +406,8 @@ class _HomePageState extends State<HomePage> {
         ),
         Center(
           child: Text(
-            "${_tanggal}",
-            style: TextStyle(color: Colors.black87),
+            "$_tanggal",
+            style: const TextStyle(color: Colors.black87),
           ),
         ),
       ],
@@ -413,10 +422,10 @@ class _HomePageState extends State<HomePage> {
           child: Opacity(
             opacity: _masuk,
             child: Padding(
-              padding: EdgeInsets.only(right: 2.5),
+              padding: const EdgeInsets.only(right: 2.5),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(primary: Colors.green),
-                child: Text(
+                child: const Text(
                   "Masuk",
                   style: TextStyle(color: Colors.white),
                 ),
@@ -437,7 +446,7 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.only(left: 2.5),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(primary: Colors.red),
-                child: Text(
+                child: const Text(
                   "Pulang",
                   style: TextStyle(color: Colors.white),
                 ),
@@ -458,13 +467,13 @@ class _HomePageState extends State<HomePage> {
             child: Opacity(
                 opacity: _diluarAbp,
                 child: Container(
-                  margin: EdgeInsets.only(top: 8),
+                  margin: const EdgeInsets.only(top: 8),
                   color: Colors.white,
                   child: Padding(
                       padding: const EdgeInsets.all(4),
                       child: Center(
                           child: Column(
-                        children: [
+                        children: const [
                           Text(
                             "Anda Diluar Area",
                             style: TextStyle(color: Colors.red),
@@ -478,51 +487,6 @@ class _HomePageState extends State<HomePage> {
                 )))
       ],
     );
-  }
-
-  showAlertDialog(BuildContext context) {
-    // set up the button
-    Widget okButton = TextButton(
-      child: Text("Ya, Keluar"),
-      onPressed: () {},
-    );
-
-    // set up the button
-    Widget noButton = TextButton(
-      child: Text("Batal"),
-      onPressed: () {
-        Navigator.pop(context);
-      },
-    );
-
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("My title"),
-      content: Text("This is my message."),
-      actions: [okButton, noButton],
-    );
-
-    // show the dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
-  }
-
-  _logOut() async {
-    var _pref = await SharedPreferences.getInstance();
-    var isLogin = _pref.getInt("isLogin");
-    if (isLogin == 1) {
-      _pref.setInt("isLogin", 0);
-      setState(() {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (BuildContext context) => const Splash()));
-      });
-    } else {}
   }
 
   void _getTime() {
@@ -583,9 +547,10 @@ class _HomePageState extends State<HomePage> {
 
   _requestLocation() async {
     var status = await _permission.status;
-      print("Permission Status : ${status}");
+    print("Permission Status : $status");
     if (status.isDenied) {
-      _requestLocation();
+      print("Permission Status ABC");
+      await handler.Permission.locationAlways.request();
     }
     if (status.isPermanentlyDenied) {
       handler.openAppSettings();
@@ -596,7 +561,11 @@ class _HomePageState extends State<HomePage> {
     if (status.isRestricted) {
       handler.openAppSettings();
     }
-    await [handler.Permission.location, handler.Permission.locationWhenInUse]
-        .request();
+    Map<handler.Permission, handler.PermissionStatus> _statuses = await [
+      handler.Permission.location,
+      handler.Permission.locationAlways,
+      handler.Permission.locationWhenInUse
+    ].request();
+    return _statuses;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:face_id_plus/screens/pages/home.dart';
 import 'package:face_id_plus/splash.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 int isLogin = 0;
@@ -16,7 +17,7 @@ class _LoadingState extends State<Loading> {
   @override
   void initState() {
     setState(() {
-      getPref(context);
+      _requestLocation();
     });
     super.initState();
   }
@@ -28,13 +29,40 @@ class _LoadingState extends State<Loading> {
 
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
-    isLogin = sharedPref.getInt("isLogin")??0;
+    isLogin = sharedPref.getInt("isLogin") ?? 0;
     if (isLogin == 1) {
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (BuildContext context) => const HomePage()));
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => const HomePage()));
     } else {
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const Splash()));
     }
+  }
+
+  _requestLocation() async {
+    var status = await Permission.location.status;
+    Map<Permission, PermissionStatus> _statuses = await [
+      Permission.location,
+      Permission.locationAlways,
+      Permission.locationWhenInUse
+    ].request();
+    print("Permission Status : $status");
+    if (status.isDenied) {
+      print("Permission Status ABC");
+      return _statuses;
+    }
+    if (status.isPermanentlyDenied) {
+      openAppSettings();
+    }
+    if (status.isGranted) {
+      getPref(context);
+    }
+    if (status.isRestricted) {
+      openAppSettings();
+    }
+
+    return _statuses;
   }
 }
