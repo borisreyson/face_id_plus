@@ -15,6 +15,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   late String nama;
   late String nik;
+  Widget loader = const Center(child: CircularProgressIndicator());
   @override
   void initState() {
     nik = "";
@@ -48,7 +49,7 @@ class _ProfileState extends State<Profile> {
           Navigator.maybePop(context);
         },
       ),
-      title: Text(
+      title: const Text(
         "Profile",
         style: TextStyle(color: Colors.black),
       ),
@@ -81,43 +82,43 @@ class _ProfileState extends State<Profile> {
               child: ListView(
                 children: [
                   Card(
-                    color: Color.fromRGBO(129, 47, 51, 51),
+                    color: const Color.fromRGBO(129, 47, 51, 51),
                     elevation: 10,
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(10),
                       child: Center(
                         child: Column(
                           children: [
                             Text(
                               "${fUsers.nama}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white),
                             ),
                             Text(
                               "${fUsers.nik}",
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             ),
                             Text("${fUsers.devisi}",
-                                style: TextStyle(color: Colors.white)),
+                                style: const TextStyle(color: Colors.white)),
                           ],
                         ),
                       ),
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.only(top: 20),
+                    margin: const EdgeInsets.only(top: 20),
                     child: SingleChildScrollView(child: _content()),
                   )
                 ],
               ),
             );
           }
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
         });
@@ -129,16 +130,16 @@ class _ProfileState extends State<Profile> {
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.hasData) {
             List<AbsenTigaHariModel> _absensi = snapshot.data;
-            print("NIK ${nik}");
-            if (_absensi.length > 0) {
+            print("NIK $nik");
+            if (_absensi.isNotEmpty) {
               return Column(
                   children: _absensi.map((ab) => _cardAbsen(ab)).toList());
             } else {
               _loadTigaHari(nik);
-              return Center(child: CircularProgressIndicator());
+              return loader;
             }
           }
-          return Center(child: CircularProgressIndicator());
+          return loader;
         });
   }
 
@@ -147,7 +148,6 @@ class _ProfileState extends State<Profile> {
     var tgl = DateTime.parse("${_absen.tanggal}");
     bool imageDone = false;
 
-    AssetImage imgBefore = AssetImage('assets/images/ic_abp.png');
     NetworkImage image = NetworkImage(_absen.gambar!);
     image
         .resolve(ImageConfiguration.empty)
@@ -160,6 +160,8 @@ class _ProfileState extends State<Profile> {
         }
       });
     }));
+    TextStyle _style = const TextStyle(fontSize: 12, color: Colors.white);
+
     return Card(
       elevation: 10,
       shadowColor: Colors.black87,
@@ -167,38 +169,36 @@ class _ProfileState extends State<Profile> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          (imageDone)?
-          Container(
-            margin: EdgeInsets.only(right: 10),
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: image,
-                  fit: BoxFit.fitWidth,
+          (imageDone)
+              ? Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: image,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      color: Colors.white),
+                )
+              :  Container(
+                  color: Colors.white,
+                  width: 100,
+                  height: 100,
+                  child:  const Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 ),
-                color: Colors.white),
-          ):Container(
-            width: 100,
-            height: 100,
-            child: Center(child: CircularProgressIndicator(),),
-          ),
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("${nama}",
-                  style: TextStyle(fontSize: 12, color: Colors.white)),
-              Text("${_absen.status}",
-                  style: TextStyle(fontSize: 12, color: Colors.white)),
-              Text("${fmt.format(tgl)}",
-                  style: TextStyle(fontSize: 12, color: Colors.white)),
-              Text("${_absen.jam}",
-                  style: TextStyle(fontSize: 12, color: Colors.white)),
-              Text("${_absen.nik}",
-                  style: TextStyle(fontSize: 12, color: Colors.white)),
-              Text("${_absen.lupa_absen}",
-                  style: TextStyle(fontSize: 12, color: Colors.white)),
+              Text(nama, style: _style),
+              Text("${_absen.status}", style: _style),
+              Text(fmt.format(tgl), style: _style),
+              Text("${_absen.jam}", style: _style),
+              Text("${_absen.nik}", style: _style),
+              Text("${_absen.lupa_absen}", style: _style),
             ],
           )
         ],
@@ -215,12 +215,13 @@ class _ProfileState extends State<Profile> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ElevatedButton(onPressed: () {}, child: Text("Lihat Absen")),
+              ElevatedButton(
+                  onPressed: () {}, child: const Text("Lihat Absen")),
               ElevatedButton(
                   onPressed: () {
                     _askLogout();
                   },
-                  child: Text("Log Out")),
+                  child: const Text("Log Out")),
             ],
           ),
         ));
@@ -243,20 +244,20 @@ class _ProfileState extends State<Profile> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Log Out'),
-            content: Text('Apakah Anda Ingin Keluar?'),
+            title: const Text('Log Out'),
+            content: const Text('Apakah Anda Ingin Keluar?'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   _doLogOut();
                 },
-                child: Text('Ya, Keluar!'),
+                child: const Text('Ya, Keluar!'),
               ),
               TextButton(
                   onPressed: () {
                     Navigator.maybePop(context);
                   },
-                  child: Text('Tidak')),
+                  child: const Text('Tidak')),
             ],
           );
         });
