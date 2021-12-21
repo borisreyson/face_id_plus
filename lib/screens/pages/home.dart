@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/screens/pages/absen_masuk.dart';
+import 'package:face_id_plus/screens/pages/masuk.dart';
 import 'package:face_id_plus/screens/pages/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart' as handler;
@@ -19,6 +20,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final handler.Permission _permission = handler.Permission.location;
+  late handler.PermissionStatus _permissionStatus;
   String? _jam;
   String? _menit;
   String? _detik;
@@ -133,10 +135,8 @@ class _HomePageState extends State<HomePage> {
             // _masuk = 0.0;
             // _pulang = 0.0;
           }
-          var status = _permissionStatus();
-          if (status.isGranted) {
+          if (_permissionStatus.isGranted) {
             locatePosition();
-
             return _loadMaps(_polygons);
           } else {
             _requestLocation();
@@ -148,11 +148,6 @@ class _HomePageState extends State<HomePage> {
         }
       },
     );
-  }
-
-  _permissionStatus() async {
-    var status = await _permission.status;
-    return status;
   }
 
   Widget _loadMaps(List<Polygon> _shape) {
@@ -430,10 +425,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => AbsenMasuk()));
+                  Navigator.push(context,MaterialPageRoute(builder: (BuildContext context) => MasukAbsen()));
                 },
               ),
             ),
@@ -498,6 +490,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<MapAreModel>> _loadArea() async {
+    _permissionStatus = await _permission.status;
+
     var area = await MapAreModel.mapAreaApi("0");
     return area;
   }

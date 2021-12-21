@@ -5,8 +5,12 @@ import 'package:flutter/material.dart';
 import "package:flutter/services.dart";
 import 'dart:io' show Platform;
 import 'package:provider/provider.dart';
+import 'package:camera/camera.dart';
 
+List<CameraDescription> cameras = [];
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp,DeviceOrientation.portraitDown]);
   runApp(MyApp());
 }
