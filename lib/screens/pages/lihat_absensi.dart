@@ -62,8 +62,7 @@ class _LihatAbsenState extends State<LihatAbsen> {
                   print("Change Date: $date");
                 }, onConfirm: (date) {
                   print("Confirm Date : $date");
-                },
-                currentTime: DateTime.now());
+                }, currentTime: DateTime.now());
               },
             ),
           ),
@@ -133,7 +132,10 @@ class _LihatAbsenState extends State<LihatAbsen> {
     return FutureBuilder(
         future: lihatAbsenAPI(apiStatus),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasData) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return loader;
+            case ConnectionState.done:
             AbsenList _absensi = snapshot.data;
             if (_absensi.listAbsen != null) {
               ListAbsen _presensi = _absensi.listAbsen!;
@@ -141,8 +143,10 @@ class _LihatAbsenState extends State<LihatAbsen> {
               return Column(
                   children: absensiList.map((e) => absensiWidget(e)).toList());
             }
+            return loader;
+            default:
+            return loader;
           }
-          return loader;
         });
   }
 

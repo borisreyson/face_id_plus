@@ -15,6 +15,7 @@ class AdminListAbsen extends StatefulWidget {
 class _AdminListAbsenState extends State<AdminListAbsen> {
   Widget loader = const Center(child: CircularProgressIndicator());
   int _selectedNavbar = 0;
+  bool futureUpdate = true;
   String apiStatus = "Masuk";
   String tanggal = DateTime(2021, 12, 20).toString();
   final ScrollController _scrollController = ScrollController();
@@ -65,8 +66,7 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
                 }, onConfirm: (date) {
                   setState(() {
                     DateFormat fmt = DateFormat("dd MMMM yyyy");
-                    Future.delayed(const Duration(milliseconds: 1000), () {
-                    });
+                        futureUpdate = true;
                     tanggal = fmt.format(date);
                   });
                   print("Confirm Date : $date");
@@ -88,7 +88,8 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
           shrinkWrap: true,
           children: [
             topContent(),
-            bottomContent(),
+            const SizedBox(height: 10,),
+            (futureUpdate) ? bottomContent() : loader,
           ],
         ));
   }
@@ -140,26 +141,33 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
     return FutureBuilder(
         future: lihatAbsenAPI(apiStatus, tanggal),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasData) {
-            var size = MediaQuery.of(context).size;
-            /*24 is for notification bar on Android*/
-            final double itemHeight = (size.height - kToolbarHeight - 24) / 2.5;
-            final double itemWidth = size.width / 2;
-            AllAbsen _absensi = snapshot.data;
-            if (_absensi != null) {
-              List<Presensi> absensiList = _absensi.presensi!;
-              return GridView.count(
-                  shrinkWrap: true,
-                  primary: false,
-                  crossAxisSpacing: 2.5,
-                  mainAxisSpacing: 2.5,
-                  crossAxisCount: 2,
-                  childAspectRatio: (itemWidth / itemHeight),
-                  scrollDirection: Axis.vertical,
-                  children: absensiList.map((e) => absensiWidget(e)).toList());
-            }
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return loader;
+            case ConnectionState.done:
+                var size = MediaQuery.of(context).size;
+                /*24 is for notification bar on Android*/
+                final double itemHeight =
+                    (size.height - kToolbarHeight - 24) / 2.5;
+                final double itemWidth = size.width / 2;
+                AllAbsen _absensi = snapshot.data;
+                if (_absensi != null) {
+                  List<Presensi> absensiList = _absensi.presensi!;
+                  return GridView.count(
+                      shrinkWrap: true,
+                      primary: false,
+                      crossAxisSpacing: 2.5,
+                      mainAxisSpacing: 2.5,
+                      crossAxisCount: 2,
+                      childAspectRatio: (itemWidth / itemHeight),
+                      scrollDirection: Axis.vertical,
+                      children:
+                          absensiList.map((e) => absensiWidget(e)).toList());
+                }
+                return loader;
+            default:
+              return loader;
           }
-          return loader;
         });
   }
 
@@ -211,7 +219,7 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
     NetworkImage image = NetworkImage(gambar);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      height: 100,
+      height: 160,
       decoration: BoxDecoration(
           borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(5), topRight: Radius.circular(5)),
@@ -231,6 +239,7 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
       } else if (index == 1) {
         apiStatus = "Pulang";
       }
+          futureUpdate = true;
     });
     _scrollController.animateTo(
       0.0,

@@ -62,73 +62,80 @@ class _ProfileState extends State<Profile> {
     return FutureBuilder(
         future: _getPref(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.hasData) {
-            Datalogin fUsers = Datalogin();
-            fUsers = snapshot.data;
-            nik = fUsers.nik!;
-            if (_showAbsen == 0) {
-              _showAbsen = fUsers.showAbsen!;
-            }
-            print("_showAbsen $_showAbsen");
-            return Stack(
-              children: [
-                Positioned(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              Datalogin fUsers = Datalogin();
+              fUsers = snapshot.data;
+              nik = fUsers.nik!;
+              if (_showAbsen == 0) {
+                _showAbsen = fUsers.showAbsen!;
+              }
+              return Stack(
+                children: [
+                  Positioned(
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom:50.0),
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          await _getPref();
-                        },
-                        child: ListView(
-                          children: [
-                            Card(
-                              color: const Color.fromRGBO(129, 47, 51, 51),
-                              elevation: 10,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding: const EdgeInsets.all(10),
-                                child: Center(
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        "${fUsers.nama}",
-                                        style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                      ),
-                                      Text(
-                                        "${fUsers.nik}",
-                                        style: const TextStyle(color: Colors.white),
-                                      ),
-                                      Text("${fUsers.devisi}",
-                                          style: const TextStyle(color: Colors.white)),
-                                    ],
+                      padding: const EdgeInsets.all(8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 50.0),
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            setState(() {});
+                          },
+                          child: ListView(
+                            children: [
+                              Card(
+                                color: const Color.fromRGBO(129, 47, 51, 51),
+                                elevation: 10,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.all(10),
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          "${fUsers.nama}",
+                                          style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white),
+                                        ),
+                                        Text(
+                                          "${fUsers.nik}",
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                        Text("${fUsers.devisi}",
+                                            style: const TextStyle(
+                                                color: Colors.white)),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Container(
-                              margin: const EdgeInsets.only(top: 20),
-                              child: SingleChildScrollView(child: _content()),
-                            )
-                          ],
+                              Container(
+                                margin: const EdgeInsets.only(top: 20),
+                                child: SingleChildScrollView(child: _content()),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                _bottomContent()
-              ],
-            );
+                  _bottomContent()
+                ],
+              );
+            case ConnectionState.waiting:
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            default:
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
           }
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
         });
   }
 
@@ -136,18 +143,20 @@ class _ProfileState extends State<Profile> {
     return FutureBuilder(
         future: _loadTigaHari(nik),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasData) {
-            List<AbsenTigaHariModel> _absensi = snapshot.data;
-            print("NIK $nik");
-            if (_absensi.isNotEmpty) {
-              return Column(
-                  children: _absensi.map((ab) => _cardAbsen(ab)).toList());
-            } else {
-              _loadTigaHari(nik);
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              List<AbsenTigaHariModel> _absensi = snapshot.data;
+              print("NIK $nik");
+              if (_absensi.isNotEmpty) {
+                return Column(
+                    children: _absensi.map((ab) => _cardAbsen(ab)).toList());
+              }
               return loader;
-            }
+            case ConnectionState.waiting:
+              return loader;
+            default:
+              return loader;
           }
-          return loader;
         });
   }
 
