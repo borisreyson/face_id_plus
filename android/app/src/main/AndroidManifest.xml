@@ -10,6 +10,7 @@
     android:name="com.google.firebase.ml.vision.DEPENDENCIES"
     android:value="ocr" />
    <application
+       android:name="${applicationName}"
        android:allowBackup="true"
        android:supportsRtl="true"
        android:label="Face ID Plus"
@@ -19,7 +20,7 @@
            android:value="AIzaSyBnKB3EFxaiK-XyyuVRSFOJcyMEHrAq46k" />
 
        <activity
-            android:name=".MainActivity"
+            android:name="io.flutter.embedding.android.FlutterActivity"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

@@ -5,13 +5,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'painters/face_detector_painter.dart';
 
-class AbsenMasuk extends StatefulWidget {
-  const AbsenMasuk({Key? key}) : super(key: key);
+
+class AbsenPulang extends StatefulWidget {
+  const AbsenPulang({ Key? key }) : super(key: key);
+
   @override
-  _AbsenMasukState createState() => _AbsenMasukState();
+  _AbsenPulangState createState() => _AbsenPulangState();
 }
 
-class _AbsenMasukState extends State<AbsenMasuk> {
+class _AbsenPulangState extends State<AbsenPulang> {
   late final Function(InputImage inputImage) onImage;
   FaceDetector faceDetector = GoogleMlKit.vision.faceDetector(
       const FaceDetectorOptions(
@@ -47,7 +49,7 @@ class _AbsenMasukState extends State<AbsenMasuk> {
     Directory root = await getTemporaryDirectory();
     String directoryPath = '${root.path}/FaceIdPlus';
     await Directory(directoryPath).create(recursive: true);
-    String filePath = '$directoryPath/${DateTime.now()}_masuk.jpg';
+    String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
     try {
       XFile image = await _cameraController!.takePicture();
       image.saveTo(filePath);
@@ -75,7 +77,7 @@ class _AbsenMasukState extends State<AbsenMasuk> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            title: Text("Absen Masuk"),
+            title: const Text("Absen Pulang"),
             leading: InkWell(
               splashColor: const Color(0xff000000),
               child: const Icon(
@@ -119,14 +121,14 @@ class _AbsenMasukState extends State<AbsenMasuk> {
                     onPressed: () {
                       Navigator.maybePop(context);
                     },
-                    child: Text("Selesai"))
+                    child: const Text("Selesai"))
                 : ElevatedButton(
                     onPressed: () {
                       setState(() {
                         visible = true;
                       });
                     },
-                    child: Text("Scan Ulang")),
+                    child: const Text("Scan Ulang")),
           ),
         )
       ],
@@ -171,7 +173,7 @@ class _AbsenMasukState extends State<AbsenMasuk> {
             },
             child: (_cameraController != null)
                 ? CameraPreview(_cameraController!)
-                : Center(
+                : const Center(
                     child: Text("Camera Tidak Tersedia!"),
                   )));
   }

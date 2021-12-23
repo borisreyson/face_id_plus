@@ -1,7 +1,27 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class FaceLoginModel {
+class FaceModel {
+  bool? success = false;
+  Datalogin? datalogin;
+  FaceModel({this.success, this.datalogin});
+  factory FaceModel.fromJson(Map<String, dynamic> object) {
+    return FaceModel(
+      success:object['success'],
+      datalogin:(object['dataLogin']!=null)?Datalogin.fromJson(object['dataLogin']):null
+    );
+  }
+  static Future<FaceModel?> loginApiFace(
+      String username, String password) async {
+    String apiUrl = "https://lp.abpjobsite.com/api/login/face";
+    var apiResult = await http.post(Uri.parse(apiUrl),
+        body: {"username": username, "password": password});
+    var jsonObject = json.decode(apiResult.body);
+      return FaceModel.fromJson(jsonObject);
+  }
+}
+
+class Datalogin {
   int? no;
   String? nik;
   String? nama;
@@ -11,7 +31,7 @@ class FaceLoginModel {
   int? flag;
   int? showAbsen;
   int? perusahaan;
-  FaceLoginModel(
+  Datalogin(
       {this.no,
       this.nik,
       this.nama,
@@ -20,10 +40,11 @@ class FaceLoginModel {
       this.jabatan,
       this.flag,
       this.showAbsen,
-      this.perusahaan});
+      this.perusahaan,
+      });
 
-  factory FaceLoginModel.fromJason(Map<String, dynamic> object) {
-    return FaceLoginModel(
+  factory Datalogin.fromJson(Map<String, dynamic> object) {
+    return Datalogin(
       no: object['no'],
       nik: object['nik'],
       nama: object['nama'],
@@ -32,22 +53,7 @@ class FaceLoginModel {
       jabatan: object['jabatan'],
       flag: object['flag'],
       showAbsen: object['show_absen'],
-      perusahaan: object['perusahaam'],
+      perusahaan: object['perusahaan'],
     );
-  }
-
-  static Future<FaceLoginModel?> loginApiFace(
-      String username, String password) async {
-    String apiUrl = "https://lp.abpjobsite.com/api/login/face";
-    var apiResult = await http.post(Uri.parse(apiUrl),
-        body: {"username": username, "password": password});
-    var jsonObject = json.decode(apiResult.body);
-    var dataLogin = (jsonObject as Map<String, dynamic>)['dataLogin'];
-    var success = (jsonObject)['success'];
-    if (success == true) {
-      return FaceLoginModel.fromJason(dataLogin);
-    } else {
-      return null;
-    }
   }
 }

@@ -4,7 +4,6 @@ import 'package:face_id_plus/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class FormLogin extends StatefulWidget {
   const FormLogin({Key? key}) : super(key: key);
@@ -15,10 +14,9 @@ class FormLogin extends StatefulWidget {
 class _FormLoginState extends State<FormLogin> {
   final GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
-  AutovalidateMode _autoValidate = AutovalidateMode.disabled;
   late FocusNode _usernameFocus, _passwordFocus;
   late String _username, _password;
-  FaceLoginModel? postLogins;
+  FaceModel? faceModel;
   SharedPreferences? sharedPref;
   int? isLogin;
   bool _passwordVisible = true;
@@ -50,26 +48,28 @@ class _FormLoginState extends State<FormLogin> {
       form.save();
       String username = _username;
       String password = _password;
-      FaceLoginModel.loginApiFace(username, password).then((value) {
-        postLogins = value;
-        if (postLogins != null) {
+      FaceModel.loginApiFace(username, password).then((value) {
+        faceModel = value;
+        if (faceModel != null) {
+          Datalogin datalogin = faceModel!.datalogin!;
           setPref(
-              1,
-              postLogins!.nik!,
-              postLogins!.nama!,
-              postLogins!.departemen!,
-              postLogins!.devisi!,
-              postLogins!.jabatan,
-              postLogins!.flag.toString(),
-              postLogins!.showAbsen.toString(),
-              postLogins!.perusahaan.toString());
-
+          1,
+          datalogin.nik!,
+          datalogin.nama!,
+          datalogin.departemen!,
+          datalogin.devisi!,
+          datalogin.jabatan,
+          datalogin.flag.toString(),
+          datalogin.showAbsen.toString(),
+          datalogin.perusahaan.toString());
           Future.delayed(const Duration(milliseconds: 1000), () {
             _roundedController.success();
-
             Future.delayed(const Duration(milliseconds: 1000), () {
-              Navigator.pushAndRemoveUntil(context,MaterialPageRoute(
-                  builder: (BuildContext context) => const HomePage()),(context)=>false);
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => const HomePage()),
+                  (context) => false);
             });
           });
         } else {
@@ -88,7 +88,6 @@ class _FormLoginState extends State<FormLogin> {
       });
     } else {
       Future.delayed(const Duration(milliseconds: 1000), () {
-        _autoValidate = AutovalidateMode.always;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Username/Nik Atau Password Tidak Boleh Kosong!!")));
         _usernameFocus.requestFocus();
@@ -105,8 +104,8 @@ class _FormLoginState extends State<FormLogin> {
       String? jabatan,
       String? devisi,
       String? flag,
-      String? perusahaan,
-      String? showAbsen) async {
+      String? showAbsen,
+      String? perusahaan) async {
     sharedPref = await SharedPreferences.getInstance();
     sharedPref?.setInt("isLogin", login);
     sharedPref?.setString("nik", nik!);
@@ -126,9 +125,8 @@ class _FormLoginState extends State<FormLogin> {
       Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) => const HomePage()),(context)=>false);
-    } else {
-      print("$isLogin || Not Login");
+              builder: (BuildContext context) => const HomePage()),
+          (context) => false);
     }
   }
 

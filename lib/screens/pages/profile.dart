@@ -1,9 +1,12 @@
 import 'package:face_id_plus/model/face_login_model.dart';
 import 'package:face_id_plus/model/tigahariabsen.dart';
+import 'package:face_id_plus/screens/pages/lihat_absensi.dart';
 import 'package:face_id_plus/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'admin_absen.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -15,10 +18,12 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   late String nama;
   late String nik;
+  late int _showAbsen;
   Widget loader = const Center(child: CircularProgressIndicator());
   @override
   void initState() {
     nik = "";
+    _showAbsen = 0;
     super.initState();
   }
 
@@ -27,12 +32,9 @@ class _ProfileState extends State<Profile> {
     return Scaffold(
         appBar: _header(),
         body: Container(
-          color: const Color(0xf0D9D9D9),
-          height: double.maxFinite,
-          child: Stack(
-            children: [_coverContent(), _bottomContent()],
-          ),
-        ));
+            color: const Color(0xf0D9D9D9),
+            height: double.maxFinite,
+            child: _topContent()));
   }
 
   AppBar _header() {
@@ -56,66 +58,72 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget _coverContent() {
-    return Positioned(
-        child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 50.0),
-        child: _topContent(),
-      ),
-    ));
-  }
-
   Widget _topContent() {
     return FutureBuilder(
         future: _getPref(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.hasData) {
-            FaceLoginModel fUsers = FaceLoginModel();
+            Datalogin fUsers = Datalogin();
             fUsers = snapshot.data;
             nik = fUsers.nik!;
-            return RefreshIndicator(
-              onRefresh: () async {
-                await _getPref();
-              },
-              child: ListView(
-                children: [
-                  Card(
-                    color: const Color.fromRGBO(129, 47, 51, 51),
-                    elevation: 10,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.all(10),
-                      child: Center(
-                        child: Column(
+            if (_showAbsen == 0) {
+              _showAbsen = fUsers.showAbsen!;
+            }
+            print("_showAbsen $_showAbsen");
+            return Stack(
+              children: [
+                Positioned(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom:50.0),
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          await _getPref();
+                        },
+                        child: ListView(
                           children: [
-                            Text(
-                              "${fUsers.nama}",
-                              style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
+                            Card(
+                              color: const Color.fromRGBO(129, 47, 51, 51),
+                              elevation: 10,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.all(10),
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        "${fUsers.nama}",
+                                        style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                      Text(
+                                        "${fUsers.nik}",
+                                        style: const TextStyle(color: Colors.white),
+                                      ),
+                                      Text("${fUsers.devisi}",
+                                          style: const TextStyle(color: Colors.white)),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                            Text(
-                              "${fUsers.nik}",
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            Text("${fUsers.devisi}",
-                                style: const TextStyle(color: Colors.white)),
+                            Container(
+                              margin: const EdgeInsets.only(top: 20),
+                              child: SingleChildScrollView(child: _content()),
+                            )
                           ],
                         ),
                       ),
                     ),
                   ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    child: SingleChildScrollView(child: _content()),
-                  )
-                ],
-              ),
+                ),
+                _bottomContent()
+              ],
             );
           }
           return const Center(
@@ -146,22 +154,7 @@ class _ProfileState extends State<Profile> {
   Widget _cardAbsen(AbsenTigaHariModel _absen) {
     DateFormat fmt = DateFormat("dd MMMM yyyy");
     var tgl = DateTime.parse("${_absen.tanggal}");
-    bool imageDone = false;
-
-    NetworkImage image = NetworkImage(_absen.gambar!);
-    image
-        .resolve(ImageConfiguration.empty)
-        .addListener(ImageStreamListener((info, status) {
-      setState(() {
-        if (status) {
-          imageDone = true;
-        } else {
-          imageDone = false;
-        }
-      });
-    }));
     TextStyle _style = const TextStyle(fontSize: 12, color: Colors.white);
-
     return Card(
       elevation: 10,
       shadowColor: Colors.black87,
@@ -169,26 +162,7 @@ class _ProfileState extends State<Profile> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          (imageDone)
-              ? Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: image,
-                        fit: BoxFit.fitWidth,
-                      ),
-                      color: Colors.white),
-                )
-              :  Container(
-                  color: Colors.white,
-                  width: 100,
-                  height: 100,
-                  child:  const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+          imageResolve(_absen.gambar!),
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,17 +180,50 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  Widget imageResolve(String gambar) {
+    NetworkImage image = NetworkImage(gambar);
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(5), bottomLeft: Radius.circular(5)),
+          image: DecorationImage(
+            image: image,
+            fit: BoxFit.fitWidth,
+          ),
+          color: Colors.white),
+    );
+  }
+
   Widget _bottomContent() {
     return Align(
         alignment: FractionalOffset.bottomCenter,
         child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.only(left: 4.0, right: 4.0),
+          padding: const EdgeInsets.only(left: 12.0, right: 12.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ElevatedButton(
-                  onPressed: () {}, child: const Text("Lihat Absen")),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LihatAbsen()));
+                  },
+                  child: const Text("Lihat Absen")),
+              Visibility(
+                visible: (_showAbsen == 1) ? true : false,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AdminListAbsen()));
+                    },
+                    child: const Text("AdminAbsen")),
+              ),
               ElevatedButton(
                   onPressed: () {
                     _askLogout();
@@ -227,15 +234,17 @@ class _ProfileState extends State<Profile> {
         ));
   }
 
-  Future<FaceLoginModel> _getPref() async {
-    FaceLoginModel _users = FaceLoginModel();
+  Future<Datalogin> _getPref() async {
+    Datalogin _users = Datalogin();
     SharedPreferences _pref = await SharedPreferences.getInstance();
     nama = _pref.getString("nama").toString();
     String nik = _pref.getString("nik").toString();
     String devisi = _pref.getString("devisi").toString();
+    String showAbsen = _pref.getString("showAbsen")!;
     _users.nama = nama;
     _users.nik = nik;
     _users.devisi = devisi;
+    _users.showAbsen = int.parse(showAbsen);
     return _users;
   }
 
@@ -268,16 +277,13 @@ class _ProfileState extends State<Profile> {
     var isLogin = _pref.getInt("isLogin");
     if (isLogin == 1) {
       _pref.setInt("isLogin", 0);
-      setState(() {
-        Navigator.maybePop(context);
-        Navigator.maybePop(context);
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-                builder: (BuildContext context) => const Splash()),
-            (context) => false);
-      });
-    } else {}
+      Navigator.maybePop(context);
+      Navigator.maybePop(context);
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (BuildContext context) => const Splash()),
+          (context) => false);
+    }
   }
 
   Future<List<AbsenTigaHariModel>> _loadTigaHari(String nik) async {

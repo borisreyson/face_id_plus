@@ -1,7 +1,9 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:face_id_plus/model/last_absen.dart';
 import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/screens/pages/absen_masuk.dart';
+import 'package:face_id_plus/screens/pages/absen_pulang.dart';
 import 'package:face_id_plus/screens/pages/masuk.dart';
 import 'package:face_id_plus/screens/pages/profile.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart' as iosLocation;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,6 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  iosLocation.Location locationIOS = iosLocation.Location();
   late final handler.Permission _permission = handler.Permission.location;
   late handler.PermissionStatus _permissionStatus;
   String? _jam;
@@ -27,40 +31,49 @@ class _HomePageState extends State<HomePage> {
   String? _tanggal;
   String? nama, nik;
   int? isLogin = 0;
-  final double _masuk = 1.0;
-  final double _pulang = 1.0;
-  final double _diluarAbp = 0.0;
+  double _masuk = 0.0;
+  double _pulang = 0.0;
+  double _diluarAbp = 0.0;
   bool outside = true;
   late Position currentPosition;
-  late LatLng myLocation;
-
+  LatLng? myLocation;
+  bool iosMapLocation = false;
   var geoLocator = Geolocator();
+  Position? position;
   final _map_controller = Completer();
   late GoogleMapController _googleMapController;
   static const CameraPosition _kGooglePlex =
-      CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 6.4746);
+      CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 14.4746);
   Future<void> locatePosition() async {
-    Position position = await Geolocator.getCurrentPosition(
+    // if (Platform.isAndroid) {
+    position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
-    currentPosition = position;
+    currentPosition = position!;
     myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
-    LatLng latLngPosition = LatLng(position.latitude, position.longitude);
-    CameraPosition cameraPosition =
-        CameraPosition(target: latLngPosition, zoom: 14.4756);
-    return await _googleMapController
-        .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    // }
+    print("locationIOS1 : ${myLocation}");
+    if (myLocation != null) {
+      if (!iosMapLocation) {
+        iosMapLocation = true;
+      }
+      CameraPosition cameraPosition =
+          CameraPosition(target: myLocation!, zoom: 20.4756);
+      return await _googleMapController
+          .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    }
   }
 
   @override
   void initState() {
-    _requestLocation();
+    if (Platform.isAndroid) {
+      _requestLocation();
+    }
     nama = "";
     nik = "";
-    _jam = "07";
-    _menit = "00";
-    _detik = "00";
+    _jam = "";
+    _menit = "";
+    _detik = "";
     setState(() {
-      // locatePosition();
       getPref(context);
       DateFormat fmt = DateFormat("dd MMMM yyyy");
       DateTime now = DateTime.now();
@@ -123,31 +136,59 @@ class _HomePageState extends State<HomePage> {
               strokeWidth: 2,
               strokeColor: Colors.red,
               fillColor: Colors.white.withOpacity(0.3)));
-          bool _insideAbp = _checkIfValidMarker(myLocation, pointAbp);
-          if (_insideAbp) {
-            // _diluarAbp = 0.0;
-            // _masuk = 1.0;
-            // _pulang = 1.0;
-            // outside = true;
-          } else {
-            // outside = false;
-            // _diluarAbp = 1.0;
-            // _masuk = 0.0;
-            // _pulang = 0.0;
+          if (myLocation != null) {
+            bool _insideAbp = _checkIfValidMarker(myLocation!, pointAbp);
+            if (_insideAbp) {
+              _diluarAbp = 0.0;
+              outside = true;
+            } else {
+              outside = false;
+              _diluarAbp = 1.0;
+            }
           }
-          if (_permissionStatus.isGranted) {
-            locatePosition();
-            return _loadMaps(_polygons);
-          } else {
-            _requestLocation();
-            return const Center(child: CircularProgressIndicator());
+
+          if (Platform.isAndroid) {
+            if (_permissionStatus.isGranted) {
+              locatePosition();
+              return _loadMaps(_polygons);
+            } else {
+              _requestLocation();
+              return const Center(child: CircularProgressIndicator());
+            }
+          } else if (Platform.isIOS) {
+            if (myLocation == null) {
+              iosGetLocation();
+              if (iosMapLocation) {
+                locatePosition();
+                return _loadMaps(_polygons);
+              } else {
+                locatePosition();
+              }
+            } else {
+              locatePosition();
+              return _loadMaps(_polygons);
+            }
           }
+          return const Center(child: CircularProgressIndicator());
         } else {
           _loadArea();
           return const Center(child: CircularProgressIndicator());
         }
       },
     );
+  }
+
+  Future<void> iosGetLocation() async {
+    iosLocation.LocationData _locationData = await locationIOS.getLocation();
+    myLocation = LatLng(_locationData.latitude!, _locationData.longitude!);
+    setState(() {
+      if (myLocation != null) {
+        iosMapLocation = true;
+      } else {
+        iosMapLocation = false;
+      }
+    });
+    return;
   }
 
   Widget _loadMaps(List<Polygon> _shape) {
@@ -157,7 +198,6 @@ class _HomePageState extends State<HomePage> {
       onMapCreated: (GoogleMapController controller) {
         _map_controller.complete(controller);
         _googleMapController = controller;
-        locatePosition();
       },
       polygons: Set<Polygon>.of(_shape),
       myLocationEnabled: true,
@@ -283,8 +323,8 @@ class _HomePageState extends State<HomePage> {
   Widget _contents() {
     return Card(
       elevation: 10,
-      margin: EdgeInsets.only(top: 60, left: 20, right: 20),
-      color: Color(0xFFF2E638),
+      margin: const EdgeInsets.only(top: 60, left: 20, right: 20),
+      color: const Color(0xFFF2E638),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -409,6 +449,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Widget _btnAbsen() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -425,7 +470,10 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () {
-                  Navigator.push(context,MaterialPageRoute(builder: (BuildContext context) => MasukAbsen()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => const AbsenMasuk()));
                 },
               ),
             ),
@@ -442,7 +490,9 @@ class _HomePageState extends State<HomePage> {
                   "Pulang",
                   style: TextStyle(color: Colors.white),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const AbsenPulang()));
+                },
               ),
             ),
           ),
@@ -530,20 +580,21 @@ class _HomePageState extends State<HomePage> {
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
     isLogin = sharedPref.getInt("isLogin")!;
-    if (isLogin == 1) {
-      nama = sharedPref.getString("nama");
-      nik = sharedPref.getString("nik");
-    } else {
-      nama = "";
-      nik = "";
-    }
+    setState(() {
+      if (isLogin == 1) {
+        nama = sharedPref.getString("nama");
+        nik = sharedPref.getString("nik");
+        loadLastAbsen(nik!);
+      } else {
+        nama = "";
+        nik = "";
+      }
+    });
   }
 
   _requestLocation() async {
     var status = await _permission.status;
-    print("Permission Status : $status");
     if (status.isDenied) {
-      print("Permission Status ABC");
       await handler.Permission.locationAlways.request();
     }
     if (status.isPermanentlyDenied) {
@@ -561,5 +612,24 @@ class _HomePageState extends State<HomePage> {
       handler.Permission.locationWhenInUse
     ].request();
     return _statuses;
+  }
+
+  loadLastAbsen(String _nik) async {
+    var lastAbsen = await LastAbsen.apiAbsenTigaHari(_nik);
+    if (lastAbsen != null) {
+      if (lastAbsen.lastAbsen != null) {
+        var absenTerakhir = lastAbsen.lastAbsen;
+        print("LastAbsen : ${lastAbsen.lastAbsen}");
+        setState(() {
+          if (absenTerakhir == "Masuk") {
+            _masuk = 0.0;
+            _pulang = 1.0;
+          } else if (absenTerakhir == "Pulang") {
+            _masuk = 1.0;
+            _pulang = 0.0;
+          }
+        });
+      }
+    }
   }
 }

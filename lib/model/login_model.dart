@@ -1,6 +1,29 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+class LoginValidate {
+  bool? success = false;
+  PostLogin? user;
+  LoginValidate({this.success, this.user});
+
+  factory LoginValidate.fromJson(Map<String, dynamic> object) {
+    return LoginValidate(
+        success: object['success'],
+        user: (object['user'] != null)
+            ? PostLogin.fromJson(object['user'])
+            : null);
+  }
+  static Future<LoginValidate?> loginToApi(
+      String username, String password) async {
+    String apiUrl = "https://lp.abpjobsite.com/api/login";
+    var apiResult = await http.post(Uri.parse(apiUrl),
+        body: {"username": username, "password": password});
+    var jsonObject = json.decode(apiResult.body);
+    print("UserLogin = $jsonObject");
+    return LoginValidate.fromJson(jsonObject);
+  }
+}
+
 class PostLogin {
   int? idUser;
   String? username;
@@ -28,20 +51,8 @@ class PostLogin {
         namaLengkap: object['nama_lengkap'],
         nik: object['nik'],
         rule: object['rule'],
+        department: object['department'].toString(),
         perusahaan: object['perusahaan'].toString(),
         photoProfile: object['photo_profile']);
-  }
-  static Future<PostLogin?> loginToApi(String username, String password) async {
-    String apiUrl = "https://lp.abpjobsite.com/api/login";
-    var apiResult = await http.post(Uri.parse(apiUrl),
-        body: {"username": username, "password": password});
-    var jsonObject = json.decode(apiResult.body);
-    var userData = (jsonObject as Map<String, dynamic>)['user'];
-    var status = (jsonObject)['success'];
-    if (status==true) {
-      return PostLogin.fromJson(userData);
-    } else {
-      return null;
-    }
   }
 }

@@ -13,7 +13,7 @@ class MasukAbsen extends StatefulWidget {
 
 class _MasukAbsenState extends State<MasukAbsen> {
   FaceDetector faceDetector =
-  GoogleMlKit.vision.faceDetector(FaceDetectorOptions(
+  GoogleMlKit.vision.faceDetector(const FaceDetectorOptions(
     enableContours: true,
     enableClassification: true,
   ));
@@ -58,7 +58,7 @@ class _MasukAbsenState extends State<MasukAbsen> {
       setState(() {
         print("Mounted : ${mounted}");
         if(faces.length==1){
-          Future.delayed(Duration(milliseconds: 1000));
+          Future.delayed(const Duration(milliseconds: 1000));
           Navigator.maybePop(context,inputImage.filePath);
         }
       });

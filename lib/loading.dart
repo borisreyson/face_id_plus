@@ -1,10 +1,14 @@
+import 'dart:io' show Platform;
 import 'package:face_id_plus/screens/pages/home.dart';
 import 'package:face_id_plus/splash.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:location/location.dart' as iosLocation;
+// import 'package:permission/permission.dart';
+import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:shared_preferences/shared_preferences.dart';
 
 int isLogin = 0;
+bool _serviceEnabled = false;
 
 class Loading extends StatefulWidget {
   const Loading({Key? key}) : super(key: key);
@@ -14,11 +18,20 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
+  late iosLocation.PermissionStatus _permissionGranted;
+  late iosLocation.LocationData _locationData;
+  iosLocation.Location location = iosLocation.Location();
   @override
   void initState() {
-    setState(() {
-      _requestLocation();
-    });
+    if (Platform.isIOS) {
+      _permissionCheck();
+    } else if (Platform.isAndroid) {
+      setState(() {
+        _requestLocation();
+      });
+    } else {
+      print("error Permission");
+    }
     super.initState();
   }
 
@@ -30,6 +43,8 @@ class _LoadingState extends State<Loading> {
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
     isLogin = sharedPref.getInt("isLogin") ?? 0;
+    print("LoginStatus $isLogin");
+
     if (isLogin == 1) {
       Navigator.pushReplacement(
           context,
@@ -41,26 +56,54 @@ class _LoadingState extends State<Loading> {
     }
   }
 
+  _permissionCheck() async {
+    _serviceEnabled = await location.serviceEnabled();
+
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == iosLocation.PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != iosLocation.PermissionStatus.granted) {
+        return;
+      } else if(_permissionGranted==iosLocation.PermissionStatus.granted) {
+        getPref(context);
+        print("Permission is $_permissionGranted");
+
+      }
+    }else{
+      getPref(context);
+        print("Permission is $_permissionGranted");
+    }
+    print("Permission $_permissionGranted");
+
+    _locationData = await location.getLocation();
+  }
+
   _requestLocation() async {
-    var status = await Permission.location.status;
-    Map<Permission, PermissionStatus> _statuses = await [
-      Permission.location,
-      Permission.locationAlways,
-      Permission.locationWhenInUse
+    var status = await handler.Permission.location.status;
+    Map<handler.Permission, handler.PermissionStatus> _statuses = await [
+      handler.Permission.location,
+      handler.Permission.locationAlways,
+      handler.Permission.locationWhenInUse
     ].request();
     print("Permission Status : $status");
     if (status.isDenied) {
       print("Permission Status ABC");
-      return _statuses;
+      return handler.openAppSettings();
     }
     if (status.isPermanentlyDenied) {
-      openAppSettings();
+      handler.openAppSettings();
     }
     if (status.isGranted) {
       getPref(context);
     }
     if (status.isRestricted) {
-      openAppSettings();
+      handler.openAppSettings();
     }
 
     return _statuses;
