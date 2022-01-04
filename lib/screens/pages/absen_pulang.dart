@@ -139,7 +139,7 @@ class _AbsenPulangState extends State<AbsenPulang> {
     return Stack(
       children: [
         _coverContent(),
-        (_cameraController != null) ? _bottomContent() : Container()
+        (visible) ? _bottomContent() : Container()
       ],
     );
   }

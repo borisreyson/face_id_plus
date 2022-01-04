@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:face_id_plus/model/all_absen.dart';
 import 'package:face_id_plus/model/last_absen.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +67,7 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
                 }, onConfirm: (date) {
                   setState(() {
                     DateFormat fmt = DateFormat("dd MMMM yyyy");
-                        futureUpdate = true;
+                    futureUpdate = true;
                     tanggal = fmt.format(date);
                   });
                   print("Confirm Date : $date");
@@ -88,7 +89,9 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
           shrinkWrap: true,
           children: [
             topContent(),
-            const SizedBox(height: 10,),
+            const SizedBox(
+              height: 10,
+            ),
             (futureUpdate) ? bottomContent() : loader,
           ],
         ));
@@ -145,26 +148,31 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
             case ConnectionState.waiting:
               return loader;
             case ConnectionState.done:
-                var size = MediaQuery.of(context).size;
-                /*24 is for notification bar on Android*/
-                final double itemHeight =
-                    (size.height - kToolbarHeight - 24) / 2.5;
-                final double itemWidth = size.width / 2;
-                AllAbsen _absensi = snapshot.data;
-                if (_absensi != null) {
-                  List<Presensi> absensiList = _absensi.presensi!;
-                  return GridView.count(
-                      shrinkWrap: true,
-                      primary: false,
-                      crossAxisSpacing: 2.5,
-                      mainAxisSpacing: 2.5,
-                      crossAxisCount: 2,
-                      childAspectRatio: (itemWidth / itemHeight),
-                      scrollDirection: Axis.vertical,
-                      children:
-                          absensiList.map((e) => absensiWidget(e)).toList());
-                }
-                return loader;
+              double itemHeight = 0;
+              var size = MediaQuery.of(context).size;
+              if (Platform.isAndroid) {
+                itemHeight = (size.height - kToolbarHeight - 24) / 2.5;
+                
+              } else if (Platform.isIOS) {
+                itemHeight = (size.height - kToolbarHeight - 24) / 2.08;
+              }
+              /*24 is for notification bar on Android*/
+              final double itemWidth = size.width / 2;
+              AllAbsen _absensi = snapshot.data;
+              if (_absensi != null) {
+                List<Presensi> absensiList = _absensi.presensi!;
+                return GridView.count(
+                    shrinkWrap: true,
+                    primary: false,
+                    crossAxisSpacing: 2.5,
+                    mainAxisSpacing: 2.5,
+                    crossAxisCount: 2,
+                    childAspectRatio: (itemWidth / itemHeight),
+                    scrollDirection: Axis.vertical,
+                    children:
+                        absensiList.map((e) => absensiWidget(e)).toList());
+              }
+              return loader;
             default:
               return loader;
           }
@@ -239,7 +247,7 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
       } else if (index == 1) {
         apiStatus = "Pulang";
       }
-          futureUpdate = true;
+      futureUpdate = true;
     });
     _scrollController.animateTo(
       0.0,

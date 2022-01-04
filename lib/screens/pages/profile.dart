@@ -22,6 +22,7 @@ class _ProfileState extends State<Profile> {
   Widget loader = const Center(child: CircularProgressIndicator());
   @override
   void initState() {
+    _getPref();
     nik = "";
     _showAbsen = 0;
     super.initState();
@@ -67,9 +68,7 @@ class _ProfileState extends State<Profile> {
               Datalogin fUsers = Datalogin();
               fUsers = snapshot.data;
               nik = fUsers.nik!;
-              if (_showAbsen == 0) {
-                _showAbsen = fUsers.showAbsen!;
-              }
+              _showAbsen = fUsers.showAbsen!;
               return Stack(
                 children: [
                   Positioned(
@@ -249,11 +248,14 @@ class _ProfileState extends State<Profile> {
     nama = _pref.getString("nama").toString();
     String nik = _pref.getString("nik").toString();
     String devisi = _pref.getString("devisi").toString();
-    String showAbsen = _pref.getString("showAbsen")!;
+    int? _showAbsen = _pref.getInt("show_absen");
     _users.nama = nama;
     _users.nik = nik;
     _users.devisi = devisi;
-    _users.showAbsen = int.parse(showAbsen);
+    print("showAbsen $_showAbsen");
+
+    _users.showAbsen = (_showAbsen==null)?0:_showAbsen;
+
     return _users;
   }
 
@@ -285,7 +287,7 @@ class _ProfileState extends State<Profile> {
     var _pref = await SharedPreferences.getInstance();
     var isLogin = _pref.getInt("isLogin");
     if (isLogin == 1) {
-      _pref.setInt("isLogin", 0);
+      await _pref.clear();
       Navigator.maybePop(context);
       Navigator.maybePop(context);
       Navigator.pushAndRemoveUntil(

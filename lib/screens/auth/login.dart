@@ -53,15 +53,15 @@ class _FormLoginState extends State<FormLogin> {
         if (faceModel != null) {
           Datalogin datalogin = faceModel!.datalogin!;
           setPref(
-          1,
-          datalogin.nik!,
-          datalogin.nama!,
-          datalogin.departemen!,
-          datalogin.devisi!,
-          datalogin.jabatan,
-          datalogin.flag.toString(),
-          datalogin.showAbsen.toString(),
-          datalogin.perusahaan.toString());
+              1,
+              datalogin.nik!,
+              datalogin.nama!,
+              datalogin.departemen!,
+              datalogin.devisi,
+              datalogin.jabatan,
+              datalogin.flag.toString(),
+              datalogin.showAbsen,
+              datalogin.perusahaan.toString());
           Future.delayed(const Duration(milliseconds: 1000), () {
             _roundedController.success();
             Future.delayed(const Duration(milliseconds: 1000), () {
@@ -104,8 +104,9 @@ class _FormLoginState extends State<FormLogin> {
       String? jabatan,
       String? devisi,
       String? flag,
-      String? showAbsen,
+      int? showAbsen,
       String? perusahaan) async {
+    print("showAbsen $showAbsen");
     sharedPref = await SharedPreferences.getInstance();
     sharedPref?.setInt("isLogin", login);
     sharedPref?.setString("nik", nik!);
@@ -114,7 +115,7 @@ class _FormLoginState extends State<FormLogin> {
     sharedPref?.setString("devisi", devisi!);
     sharedPref?.setString("jabatan", jabatan!);
     sharedPref?.setString("flag", flag!);
-    sharedPref?.setString("showAbsen", showAbsen!);
+    sharedPref?.setInt("show_absen", showAbsen!);
     sharedPref?.setString("perusahaan", perusahaan!);
   }
 

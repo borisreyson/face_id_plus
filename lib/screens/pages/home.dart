@@ -4,7 +4,6 @@ import 'package:face_id_plus/model/last_absen.dart';
 import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/screens/pages/absen_masuk.dart';
 import 'package:face_id_plus/screens/pages/absen_pulang.dart';
-import 'package:face_id_plus/screens/pages/masuk.dart';
 import 'package:face_id_plus/screens/pages/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart' as handler;
@@ -136,21 +135,11 @@ class _HomePageState extends State<HomePage> {
               strokeWidth: 2,
               strokeColor: Colors.red,
               fillColor: Colors.white.withOpacity(0.3)));
-          if (myLocation != null) {
-            bool _insideAbp = _checkIfValidMarker(myLocation!, pointAbp);
-            if (_insideAbp) {
-              _diluarAbp = 0.0;
-              outside = true;
-            } else {
-              outside = false;
-              _diluarAbp = 1.0;
-            }
-          }
 
           if (Platform.isAndroid) {
             if (_permissionStatus.isGranted) {
               locatePosition();
-              return _loadMaps(_polygons);
+              return _loadMaps(_polygons, pointAbp);
             } else {
               _requestLocation();
               return const Center(child: CircularProgressIndicator());
@@ -160,13 +149,13 @@ class _HomePageState extends State<HomePage> {
               iosGetLocation();
               if (iosMapLocation) {
                 locatePosition();
-                return _loadMaps(_polygons);
+                return _loadMaps(_polygons, pointAbp);
               } else {
                 locatePosition();
               }
             } else {
               locatePosition();
-              return _loadMaps(_polygons);
+              return _loadMaps(_polygons, pointAbp);
             }
           }
           return const Center(child: CircularProgressIndicator());
@@ -181,17 +170,25 @@ class _HomePageState extends State<HomePage> {
   Future<void> iosGetLocation() async {
     iosLocation.LocationData _locationData = await locationIOS.getLocation();
     myLocation = LatLng(_locationData.latitude!, _locationData.longitude!);
-    setState(() {
       if (myLocation != null) {
         iosMapLocation = true;
       } else {
         iosMapLocation = false;
       }
-    });
     return;
   }
 
-  Widget _loadMaps(List<Polygon> _shape) {
+  Widget _loadMaps(List<Polygon> _shape, List<LatLng> pointAbp) {
+    if (myLocation != null) {
+      bool _insideAbp = _checkIfValidMarker(myLocation!, pointAbp);
+      if (_insideAbp) {
+        _diluarAbp = 0.0;
+        outside = true;
+      } else {
+        outside = false;
+        _diluarAbp = 1.0;
+      }
+    }
     return GoogleMap(
       initialCameraPosition: _kGooglePlex,
       mapType: MapType.hybrid,
@@ -473,7 +470,8 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (BuildContext context) => const AbsenMasuk()));
+                          builder: (BuildContext context) =>
+                              const AbsenMasuk()));
                 },
               ),
             ),
@@ -491,7 +489,10 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const AbsenPulang()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const AbsenPulang()));
                 },
               ),
             ),
@@ -540,6 +541,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<MapAreModel>> _loadArea() async {
+    outside = true;
     _permissionStatus = await _permission.status;
 
     var area = await MapAreModel.mapAreaApi("0");
@@ -580,16 +582,15 @@ class _HomePageState extends State<HomePage> {
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
     isLogin = sharedPref.getInt("isLogin")!;
-    setState(() {
       if (isLogin == 1) {
         nama = sharedPref.getString("nama");
         nik = sharedPref.getString("nik");
+        int? showAbsen = sharedPref.getInt("show_absen");
         loadLastAbsen(nik!);
       } else {
         nama = "";
         nik = "";
       }
-    });
   }
 
   _requestLocation() async {
@@ -620,7 +621,6 @@ class _HomePageState extends State<HomePage> {
       if (lastAbsen.lastAbsen != null) {
         var absenTerakhir = lastAbsen.lastAbsen;
         print("LastAbsen : ${lastAbsen.lastAbsen}");
-        setState(() {
           if (absenTerakhir == "Masuk") {
             _masuk = 0.0;
             _pulang = 1.0;
@@ -628,7 +628,6 @@ class _HomePageState extends State<HomePage> {
             _masuk = 1.0;
             _pulang = 0.0;
           }
-        });
       }
     }
   }
