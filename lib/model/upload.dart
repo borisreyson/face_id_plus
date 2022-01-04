@@ -20,7 +20,7 @@ class Upload {
 
     String tgl = "";
     String jam = "";
-    String apiUrl = "https://abpjobsite.com/upload.php";
+    String apiUrl = "https://abpjobsite.com/upload_image.php";
     var request = http.MultipartRequest("POST", Uri.parse(apiUrl));
     request.fields['id'] = "0";
     request.fields['nik'] = nik;

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'painters/face_detector_painter.dart';
-
+import 'dart:ui' as ui show Image;
 
 class AbsenPulang extends StatefulWidget {
   const AbsenPulang({ Key? key }) : super(key: key);
@@ -14,6 +15,7 @@ class AbsenPulang extends StatefulWidget {
 }
 
 class _AbsenPulangState extends State<AbsenPulang> {
+  var externalDirectory ;
   late final Function(InputImage inputImage) onImage;
   FaceDetector faceDetector = GoogleMlKit.vision.faceDetector(
       const FaceDetectorOptions(
@@ -24,7 +26,7 @@ class _AbsenPulangState extends State<AbsenPulang> {
   bool visible = true;
   bool detect = false;
   File? imageFile;
-  int cameraPick = 0;
+  int cameraPick = 1;
   late List<CameraDescription> cameras;
   Future<void> initializeCamera() async {
     cameras = await availableCameras();
@@ -38,7 +40,9 @@ class _AbsenPulangState extends State<AbsenPulang> {
 
   Future<void> initCameras() async {
     if(cameras.isNotEmpty){
-      
+      if(cameras.length > 0){
+        cameraPick = 1;
+      }
     }
     setState(() {
       cameraPick = cameraPick < cameras.length - 1 ? cameraPick + 1 : 0;
@@ -46,8 +50,8 @@ class _AbsenPulangState extends State<AbsenPulang> {
   }
 
   Future<File> takePicture() async {
-    Directory root = await getTemporaryDirectory();
-    String directoryPath = '${root.path}/FaceIdPlus';
+    externalDirectory  = await getApplicationDocumentsDirectory();
+    String directoryPath = '${externalDirectory.path}/FaceIdPlus';
     await Directory(directoryPath).create(recursive: true);
     String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
     try {
@@ -57,7 +61,10 @@ class _AbsenPulangState extends State<AbsenPulang> {
       print('Error : ${e.toString()}');
       // return null;
     }
-    return File(filePath);
+    var files = File(filePath);
+    var saving =await files.create(recursive: true);
+    print("Saving $saving");
+    return files;
   }
 
   @override
@@ -188,11 +195,15 @@ class _AbsenPulangState extends State<AbsenPulang> {
         child: ElevatedButton(
             onPressed: () async {
               if (!_cameraController!.value.isTakingPicture) {
+                ImagePicker picker = ImagePicker();
                 File result = await takePicture();
+                _localFile;
                 InputImage image = InputImage.fromFile(result);
                 print("detect $image");
+                print("detect $result");
                 print("TAKE PICTURE");
                 setState(() {
+                  // imageFile= result;
                   processImage(image);
                   visible = false;
                 });
@@ -202,15 +213,14 @@ class _AbsenPulangState extends State<AbsenPulang> {
       ),
     );
   }
-
   Future<void> processImage(InputImage inputImage) async {
     print("Mulai detect");
     if (isBusy) return;
     isBusy = true;
     final faces = await faceDetector.processImage(inputImage);
 
-    if (inputImage.inputImageData?.size != null &&
-        inputImage.inputImageData?.imageRotation != null) {
+    if (inputImage.inputImageData!.size != null &&
+        inputImage.inputImageData!.imageRotation != null) {
       final painter = FaceDetectorPainter(
           faces,
           inputImage.inputImageData!.size,
@@ -225,5 +235,21 @@ class _AbsenPulangState extends State<AbsenPulang> {
     if (mounted) {
       setState(() {});
     }
+  }
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    // For your reference print the AppDoc directory
+    print(directory.path);
+    return directory.path;
+  }
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    print("Lokasi $path");
+    return File('$path/data.txt');
+  }
+  Future<File> writeContent() async {
+    final file = await _localFile;
+    // Write the file
+    return file.writeAsString('Hello Folks');
   }
 }

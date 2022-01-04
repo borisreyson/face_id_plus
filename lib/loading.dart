@@ -71,12 +71,10 @@ class _LoadingState extends State<Loading> {
       if (_permissionGranted != iosLocation.PermissionStatus.granted) {
         return;
       } else if(_permissionGranted==iosLocation.PermissionStatus.granted) {
-        getPref(context);
         print("Permission is $_permissionGranted");
 
       }
     }else{
-      getPref(context);
         print("Permission is $_permissionGranted");
     }
     print("Permission $_permissionGranted");
@@ -86,26 +84,51 @@ class _LoadingState extends State<Loading> {
 
   _requestLocation() async {
     var status = await handler.Permission.location.status;
+    var camStat = await handler.Permission.camera.status;
+    var storage = await handler.Permission.storage.status;
     Map<handler.Permission, handler.PermissionStatus> _statuses = await [
       handler.Permission.location,
       handler.Permission.locationAlways,
-      handler.Permission.locationWhenInUse
+      handler.Permission.locationWhenInUse,
+      handler.Permission.storage,
+      handler.Permission.manageExternalStorage,
+      handler.Permission.camera,
+      handler.Permission.microphone,
+      handler.Permission.phone
     ].request();
-    print("Permission Status : $status");
-    if (status.isDenied) {
-      print("Permission Status ABC");
-      return handler.openAppSettings();
-    }
-    if (status.isPermanentlyDenied) {
-      handler.openAppSettings();
-    }
-    if (status.isGranted) {
-      getPref(context);
-    }
-    if (status.isRestricted) {
-      handler.openAppSettings();
-    }
-
+    print("permission ${_statuses[handler.Permission.storage]}");
+    // print("Permission Status : $status");
+    // if (status.isDenied) {
+    //   print("Permission Status ABC");
+    //   return handler.openAppSettings();
+    // }
+    // if (status.isPermanentlyDenied) {
+    //   handler.openAppSettings();
+    // }
+    // if (status.isGranted) {
+    //   _statuses;
+    // }
+    // if (status.isRestricted) {
+    //   handler.openAppSettings();
+    // }
+    // if(camStat.isDenied){
+    //   handler.Permission.camera.request();
+    // }
+    // if(camStat.isPermanentlyDenied){
+    //   handler.openAppSettings();
+    // }
+    // if(camStat.isRestricted){
+    //   handler.openAppSettings();
+    // }
+    // if(storage.isDenied){
+    //   handler.Permission.storage.request();
+    // }
+    // if(storage.isPermanentlyDenied){
+    //   handler.openAppSettings();
+    // }
+    // if(storage.isRestricted){
+    //   handler.openAppSettings();
+    // }
     return _statuses;
   }
 }
