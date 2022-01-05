@@ -1,4 +1,5 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:face_id_plus/intro.dart';
 import 'package:face_id_plus/loading.dart';
 import 'package:face_id_plus/services/firebase_config.dart';
 import 'package:face_id_plus/services/location_service.dart';
@@ -60,14 +61,14 @@ class MyApp extends StatelessWidget {
           splash: Image.asset('assets/images/ic_abp.png'),
           duration: 1500,
           splashTransition: SplashTransition.scaleTransition,
-          nextScreen: Loading());
+          nextScreen: SliderIntro());
       // Splash();
     } else if (Platform.isIOS) {
       return AnimatedSplashScreen(
           splash: Image.asset('assets/images/ic_abp.png'),
           duration: 1500,
           splashTransition: SplashTransition.scaleTransition,
-          nextScreen: Loading());
+          nextScreen: SliderIntro());
     }
   }
 }

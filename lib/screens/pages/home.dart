@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:typed_data';
 import 'package:face_id_plus/model/last_absen.dart';
 import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/screens/pages/absen_masuk.dart';
 import 'package:face_id_plus/screens/pages/absen_pulang.dart';
 import 'package:face_id_plus/screens/pages/profile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as iosLocation;
+import 'dart:ui' as ui;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -41,8 +44,11 @@ class _HomePageState extends State<HomePage> {
   Position? position;
   final _map_controller = Completer();
   late GoogleMapController _googleMapController;
+  late BitmapDescriptor customIcon;
+  late Set<Marker> markers ={};
+  late Marker marker;
   static const CameraPosition _kGooglePlex =
-      CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 14.4746);
+      CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 14.2746);
   Future<void> locatePosition() async {
     // if (Platform.isAndroid) {
     position = await Geolocator.getCurrentPosition(
@@ -56,7 +62,7 @@ class _HomePageState extends State<HomePage> {
         iosMapLocation = true;
       }
       CameraPosition cameraPosition =
-          CameraPosition(target: myLocation!, zoom: 20.4756);
+          CameraPosition(target: myLocation!, zoom: 19.3756);
       return await _googleMapController
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
     }
@@ -64,6 +70,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    setCustomMapPin();
     if (Platform.isAndroid) {
       _requestLocation();
     }
@@ -81,7 +88,16 @@ class _HomePageState extends State<HomePage> {
     });
     super.initState();
   }
-
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
+  }
+  void setCustomMapPin() async {
+    final Uint8List markerIcon = await getBytesFromAsset('assets/images/abp_60x60.png', 60);
+    customIcon = await BitmapDescriptor.fromBytes(markerIcon);
+  }
   @override
   Widget build(BuildContext context) {
     return _mainContent();
@@ -191,12 +207,25 @@ class _HomePageState extends State<HomePage> {
     }
     return GoogleMap(
       initialCameraPosition: _kGooglePlex,
-      mapType: MapType.hybrid,
+      mapType: MapType.normal,
       onMapCreated: (GoogleMapController controller) {
         _map_controller.complete(controller);
         _googleMapController = controller;
+
+        setState(() {
+          marker = Marker(
+            markerId: MarkerId('abpenergy'),
+            position: LatLng(-0.5634222, 117.0139606),
+            icon: customIcon,
+            infoWindow: InfoWindow(
+              title: 'PT Alamjaya Bara Pratama',
+            ),
+          );
+          markers.add(marker);
+        });
       },
       polygons: Set<Polygon>.of(_shape),
+      markers: markers,
       myLocationEnabled: true,
       zoomControlsEnabled: true,
       zoomGesturesEnabled: true,

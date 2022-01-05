@@ -96,7 +96,10 @@ class _LoadingState extends State<Loading> {
       handler.Permission.microphone,
       handler.Permission.phone
     ].request();
-    print("permission ${_statuses[handler.Permission.storage]}");
+    _statuses.forEach((key, value) {
+      print("permission ${key}  - ${value}");
+    });
+
     // print("Permission Status : $status");
     // if (status.isDenied) {
     //   print("Permission Status ABC");
@@ -129,6 +132,7 @@ class _LoadingState extends State<Loading> {
     // if(storage.isRestricted){
     //   handler.openAppSettings();
     // }
+    getPref(context);
     return _statuses;
   }
 }
