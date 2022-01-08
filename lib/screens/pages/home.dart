@@ -16,6 +16,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as iosLocation;
 import 'dart:ui' as ui;
 
+import 'new_absen_pulang.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -521,7 +523,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const AbsenPulang()));
+                          builder: (context) => const PulangAbsen()));
                 },
               ),
             ),

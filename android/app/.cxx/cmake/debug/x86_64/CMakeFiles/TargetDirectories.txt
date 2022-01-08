@@ -1,0 +1,3 @@
+C:/Users/Yoga/StudioProjects/face_id_plus/android/app/.cxx/cmake/debug/x86_64/CMakeFiles/rebuild_cache.dir
+C:/Users/Yoga/StudioProjects/face_id_plus/android/app/.cxx/cmake/debug/x86_64/CMakeFiles/convertImage.dir
+C:/Users/Yoga/StudioProjects/face_id_plus/android/app/.cxx/cmake/debug/x86_64/CMakeFiles/edit_cache.dir

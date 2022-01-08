@@ -1,0 +1,2 @@
+ninja: Entering directory `C:\Users\Yoga\StudioProjects\face_id_plus\android\app\.cxx\cmake\debug\x86_64'
+ninja: no work to do.

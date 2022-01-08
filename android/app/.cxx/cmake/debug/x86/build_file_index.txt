@@ -1,0 +1,1 @@
+C:\Users\Yoga\StudioProjects\face_id_plus\android\CMakeLists.txt

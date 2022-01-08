@@ -1,0 +1,33 @@
+{
+  "buildFiles": [
+    "C:\\Users\\Yoga\\StudioProjects\\face_id_plus\\android\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\Yoga\\AppData\\Local\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\Yoga\\StudioProjects\\face_id_plus\\android\\app\\.cxx\\cmake\\debug\\x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\Yoga\\AppData\\Local\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\Yoga\\StudioProjects\\face_id_plus\\android\\app\\.cxx\\cmake\\debug\\x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "convertImage-Debug-x86_64": {
+      "artifactName": "convertImage",
+      "buildCommandComponents": [
+        "C:\\Users\\Yoga\\AppData\\Local\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+        "-C",
+        "C:\\Users\\Yoga\\StudioProjects\\face_id_plus\\android\\app\\.cxx\\cmake\\debug\\x86_64",
+        "convertImage"
+      ],
+      "abi": "x86_64",
+      "output": "C:\\Users\\Yoga\\StudioProjects\\face_id_plus\\build\\app\\intermediates\\cmake\\debug\\obj\\x86_64\\libconvertImage.so",
+      "runtimeFiles": []
+    }
+  }
+}
