@@ -1,18 +1,41 @@
+import 'dart:ffi';
+import 'dart:ui';
+import 'package:face_id_plus/model/upload.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'painters/face_detector_painter.dart';
+import 'dart:ui' as ui show Image;
+import 'dart:typed_data';
+import 'package:ffi/ffi.dart';
+import 'package:image/image.dart' as imglib;
+
+typedef convert_func = Pointer<Uint32> Function(Pointer<Uint8>, Pointer<Uint8>, Pointer<Uint8>, Int32, Int32, Int32, Int32);
+typedef Convert = Pointer<Uint32> Function(Pointer<Uint8>, Pointer<Uint8>, Pointer<Uint8>, int, int, int, int);
 
 class AbsenMasuk extends StatefulWidget {
-  const AbsenMasuk({Key? key}) : super(key: key);
+  final String nik;
+  final String status;
+  const AbsenMasuk({Key? key,required this.nik,required this.status}) : super(key: key);
   @override
   _AbsenMasukState createState() => _AbsenMasukState();
 }
 
 class _AbsenMasukState extends State<AbsenMasuk> {
+
+  final DynamicLibrary convertImageLib = Platform.isAndroid
+      ? DynamicLibrary.open("libconvertImage.so")
+      : DynamicLibrary.process();
+  late Convert conv;
+  late imglib.Image img;
+  var externalDirectory ;
   late final Function(InputImage inputImage) onImage;
+  late CameraImage _savedImage;
+  bool _cameraInitialized = false;
   FaceDetector faceDetector = GoogleMlKit.vision.faceDetector(
       const FaceDetectorOptions(
           enableContours: true, enableClassification: true));
@@ -22,21 +45,39 @@ class _AbsenMasukState extends State<AbsenMasuk> {
   bool visible = true;
   bool detect = false;
   File? imageFile;
-  int cameraPick = 0;
+  int cameraPick = 1;
   late List<CameraDescription> cameras;
-  Future<void> initializeCamera() async {
+  List<int>? intImage;
+
+  static const shift = (0xFF << 24);
+
+  void initializeCamera() async {
     cameras = await availableCameras();
-    print("Cameras : $cameras");
     if (cameras.isNotEmpty) {
       _cameraController =
           CameraController(cameras[cameraPick], ResolutionPreset.medium);
-      await _cameraController?.initialize();
+
+      await _cameraController!.initialize().then((_) async {
+        // Start ImageStream
+        await _cameraController!.startImageStream((CameraImage image) =>
+            _processCameraImage(image));
+        setState(() {
+          _cameraInitialized = true;
+        });
+      } );
     }
   }
-
+  void _processCameraImage(CameraImage image) async {
+    setState(() {
+      _savedImage = image;
+    });
+  }
   Future<void> initCameras() async {
+
     if(cameras.isNotEmpty){
-      
+      if(cameras.length > 0){
+        cameraPick = 1;
+      }
     }
     setState(() {
       cameraPick = cameraPick < cameras.length - 1 ? cameraPick + 1 : 0;
@@ -44,10 +85,10 @@ class _AbsenMasukState extends State<AbsenMasuk> {
   }
 
   Future<File> takePicture() async {
-    Directory root = await getTemporaryDirectory();
-    String directoryPath = '${root.path}/FaceIdPlus';
+    externalDirectory  = await getApplicationDocumentsDirectory();
+    String directoryPath = '${externalDirectory.path}/FaceIdPlus';
     await Directory(directoryPath).create(recursive: true);
-    String filePath = '$directoryPath/${DateTime.now()}_masuk.jpg';
+    String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
     try {
       XFile image = await _cameraController!.takePicture();
       image.saveTo(filePath);
@@ -55,41 +96,58 @@ class _AbsenMasukState extends State<AbsenMasuk> {
       print('Error : ${e.toString()}');
       // return null;
     }
-    return File(filePath);
+    var files = File(filePath);
+    var saving =await files.create(recursive: true);
+    print("Saving $saving");
+    return files;
   }
 
   @override
   void initState() {
-      initCameras();
+    initializeCamera();
+    conv = convertImageLib.lookup<NativeFunction<convert_func>>('convertImage').asFunction<Convert>();
     super.initState();
   }
-
   @override
   void dispose() {
-    _cameraController?.dispose();
-    faceDetector.close();
+    _stopLiveFeed();
     super.dispose();
   }
-
+  Future _stopLiveFeed() async {
+    await _cameraController?.stopImageStream();
+    await _cameraController?.dispose();
+    await faceDetector.close();
+    _cameraController = null;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-            title: Text("Absen Masuk"),
-            leading: InkWell(
-              splashColor: const Color(0xff000000),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.white,
-              ),
-              onTap: () {
-                Navigator.maybePop(context);
-              },
-            )),
-        body: Container(
-            color: const Color(0xf0D9D9D9),
-            height: double.maxFinite,
-            child: (visible) ? cameraFrame() : imgFrame()));
+      appBar: AppBar(
+          title: const Text("Absen Pulang"),
+          leading: InkWell(
+            splashColor: const Color(0xff000000),
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white,
+            ),
+            onTap: () {
+              Navigator.maybePop(context);
+            },
+          )),
+      body: Container(
+          color: const Color(0xf0D9D9D9),
+          child: (visible) ? cameraFrame() : imgFrame()),
+      floatingActionButton: (visible)? FloatingActionButton(
+        onPressed: (){
+          print("Save image $_savedImage");
+          _processImageStream(_savedImage);
+        },
+        tooltip: 'Scan Wajah',
+        child: Icon(Icons.camera),
+      ):Visibility(visible: false,child: Container(),),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+
+    );
   }
 
   Widget imgFrame() {
@@ -97,17 +155,16 @@ class _AbsenMasukState extends State<AbsenMasuk> {
       children: [
         Positioned(
             child: Stack(
-          fit: StackFit.expand,
-          children: [
-            SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: (imageFile != null)
-                    ? Image.file(imageFile!, fit: BoxFit.fill)
-                    : Container()),
-            if (customPaint != null) customPaint!,
-          ],
-        )),
+              fit: StackFit.expand,
+              children: [
+                SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: (intImage != null)
+                        ? Image.memory(Uint8List.fromList(intImage!))
+                        : Container()),
+                if (customPaint != null) customPaint!,
+              ],
+            )),
         Align(
           alignment: FractionalOffset.bottomCenter,
           child: Container(
@@ -116,17 +173,20 @@ class _AbsenMasukState extends State<AbsenMasuk> {
             padding: const EdgeInsets.only(left: 4.0, right: 4.0),
             child: (detect)
                 ? ElevatedButton(
-                    onPressed: () {
-                      Navigator.maybePop(context);
-                    },
-                    child: Text("Selesai"))
+                onPressed: () {
+                  Navigator.maybePop(context);
+                },
+                child: const Text("Selesai"))
                 : ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        visible = true;
-                      });
-                    },
-                    child: Text("Scan Ulang")),
+                onPressed: () {
+                  setState(() {
+                    visible = true;
+                    detect=false;
+                    initializeCamera();
+                    conv = convertImageLib.lookup<NativeFunction<convert_func>>('convertImage').asFunction<Convert>();
+                  });
+                },
+                child: const Text("Scan Ulang")),
           ),
         )
       ],
@@ -136,44 +196,34 @@ class _AbsenMasukState extends State<AbsenMasuk> {
   Widget cameraFrame() {
     return Stack(
       children: [
-        _coverContent(),
-        (_cameraController != null) ? _bottomContent() : Container()
+        (_cameraInitialized) ?Container(
+          child: cameraPreview(),
+        ):
+        const Center(
+          child: SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(),
+          ),
+        ),
+        (visible) ? _bottomContent() : Container()
       ],
     );
-  }
-
-  Widget _coverContent() {
-    return Positioned(
-        child: FutureBuilder(
-            future: initializeCamera(),
-            builder: (context, snapshot) =>
-                (snapshot.connectionState == ConnectionState.done)
-                    ? Container(
-                        child: cameraPreview(),
-                      )
-                    : const Center(
-                        child: SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(),
-                        ),
-                      )));
   }
 
   Widget cameraPreview() {
     return SizedBox(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
         child: GestureDetector(
             onDoubleTap: () {
-                initCameras();
+              initCameras();
               print("Double Tap");
             },
             child: (_cameraController != null)
                 ? CameraPreview(_cameraController!)
-                : Center(
-                    child: Text("Camera Tidak Tersedia!"),
-                  )));
+                : const Center(
+              child: Text("Camera Tidak Tersedia!"),
+            )));
   }
 
   Widget _bottomContent() {
@@ -183,24 +233,30 @@ class _AbsenMasukState extends State<AbsenMasuk> {
         width: MediaQuery.of(context).size.width,
         color: Colors.white,
         padding: const EdgeInsets.only(left: 4.0, right: 4.0),
-        child: ElevatedButton(
-            onPressed: () async {
-              if (!_cameraController!.value.isTakingPicture) {
-                File result = await takePicture();
-                InputImage image = InputImage.fromFile(result);
-                print("detect $image");
-                print("TAKE PICTURE");
-                setState(() {
-                  processImage(image);
-                  visible = false;
-                });
-              }
-            },
-            child: const Text("Scan Wajah")),
+        child: Visibility(
+          visible: false,
+          child: ElevatedButton(
+              onPressed: () async {
+                if (!_cameraController!.value.isTakingPicture) {
+                  ImagePicker picker = ImagePicker();
+                  File result = await takePicture();
+                  _localFile;
+                  InputImage image = InputImage.fromFile(result);
+                  print("detect $image");
+                  print("detect $result");
+                  print("TAKE PICTURE");
+                  setState(() {
+                    // imageFile= result;
+                    processImage(image);
+                    visible = false;
+                  });
+                }
+              },
+              child: const Text("Scan Wajah")),
+        ),
       ),
     );
   }
-
   Future<void> processImage(InputImage inputImage) async {
     print("Mulai detect");
     if (isBusy) return;
@@ -214,14 +270,135 @@ class _AbsenMasukState extends State<AbsenMasuk> {
           inputImage.inputImageData!.size,
           inputImage.inputImageData!.imageRotation);
       customPaint = CustomPaint(painter: painter);
+      intImage =  await convertImage(_savedImage);
+
       print("Di detect");
+      print("Di detect ${intImage}");
+      _cameraInitialized=false;
+      _stopLiveFeed();
+      savingImage();
     } else {
       customPaint = null;
       print("Tidak di detect");
     }
     isBusy = false;
     if (mounted) {
+      print("Di detect $mounted");
+
       setState(() {});
+    }
+  }
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    // For your reference print the AppDoc directory
+    print(directory.path);
+    return directory.path;
+  }
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    print("Lokasi $path");
+    return File('$path/data.txt');
+  }
+  Future _processImageStream(CameraImage image) async {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+
+    final Size imageSize =
+    Size(image.width.toDouble(), image.height.toDouble());
+
+    final camera = cameras[cameraPick];
+    final imageRotation =
+        InputImageRotationMethods.fromRawValue(camera.sensorOrientation) ??
+            InputImageRotation.Rotation_180deg;
+
+    final inputImageFormat =
+        InputImageFormatMethods.fromRawValue(image.format.raw) ??
+            InputImageFormat.NV21;
+
+    final planeData = image.planes.map(
+          (Plane plane) {
+        return InputImagePlaneMetadata(
+          bytesPerRow: plane.bytesPerRow,
+          height: plane.height,
+          width: plane.width,
+        );
+      },
+    ).toList();
+
+    final inputImageData = InputImageData(
+      size: imageSize,
+      imageRotation: imageRotation,
+      inputImageFormat: inputImageFormat,
+      planeData: planeData,
+    );
+
+    final inputImage =
+    InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+
+    processImage(inputImage);
+  }
+  Future<List<int>> convertImage(CameraImage image) async {
+    if(Platform.isAndroid){
+      // Allocate memory for the 3 planes of the image
+      Pointer<Uint8> p = calloc(_savedImage.planes[0].bytes.length);
+      Pointer<Uint8> p1 = calloc(_savedImage.planes[1].bytes.length);
+      Pointer<Uint8> p2 = calloc(_savedImage.planes[2].bytes.length);
+
+      // Assign the planes data to the pointers of the image
+      Uint8List pointerList = p.asTypedList(_savedImage.planes[0].bytes.length);
+      Uint8List pointerList1 = p1.asTypedList(_savedImage.planes[1].bytes.length);
+      Uint8List pointerList2 = p2.asTypedList(_savedImage.planes[2].bytes.length);
+      pointerList.setRange(0, _savedImage.planes[0].bytes.length, _savedImage.planes[0].bytes);
+      pointerList1.setRange(0, _savedImage.planes[1].bytes.length, _savedImage.planes[1].bytes);
+      pointerList2.setRange(0, _savedImage.planes[2].bytes.length, _savedImage.planes[2].bytes);
+
+      // Call the convertImage function and convert the YUV to RGB
+      Pointer<Uint32> imgP = conv(p, p1, p2, _savedImage.planes[1].bytesPerRow,
+          _savedImage.planes[1].bytesPerPixel!, _savedImage.planes[0].bytesPerRow, _savedImage.height);
+
+      // Get the pointer of the data returned from the function to a List
+      List<int> imgData = imgP.asTypedList((_savedImage.planes[0].bytesPerRow * _savedImage.height));
+      // Generate image from the converted data
+      img = imglib.Image.fromBytes(_savedImage.height, _savedImage.planes[0].bytesPerRow, imgData);
+      // Free the memory space allocated
+      // from the planes and the converted data        calloc.free(p);
+      calloc.free(p1);
+      calloc.free(p2);
+      calloc.free(imgP);
+    }else if(Platform.isIOS){
+      img = imglib.Image.fromBytes(
+        _savedImage.planes[0].bytesPerRow,
+        _savedImage.height,
+        _savedImage.planes[0].bytes,
+        format: imglib.Format.bgra,
+      );
+    }
+    img= imglib.flipVertical(img!);
+    img = imglib.copyCrop(img, 0, 100, img.width, img.height-100);
+    imglib.PngEncoder pngEncoder = imglib.PngEncoder();
+    return pngEncoder.encodeImage(img);
+  }
+  savingImage() async{
+    externalDirectory  = await getApplicationDocumentsDirectory();
+    String directoryPath = '${externalDirectory.path}/FaceIdPlus';
+    await Directory(directoryPath).create(recursive: true);
+    String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
+    File _files = await File(filePath).writeAsBytes(intImage!);
+    print("Filess ${_files}");
+    absensiPulang(_files);
+  }
+  absensiPulang(File files)async{
+    var uploadRes = await Upload.uploadApi(widget.nik, widget.status, files);
+    print("UploadResult ${uploadRes}");
+    if(uploadRes!=null){
+      visible = false;
+      detect=true;
+      setState(() {
+
+      });
     }
   }
 }

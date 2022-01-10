@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class Upload {
   String? image;
   String? res;
-  String? tidakDikenal;
+  bool? tidakDikenal;
 
   Upload({this.image, this.res, this.tidakDikenal});
   factory Upload.fromJson(Map<String, dynamic> object) {
@@ -15,8 +15,8 @@ class Upload {
         res: object['res'],
         tidakDikenal: object['tidak_dikenal']);
   }
-  Future<void> uploadApi(String nik, String status, File file) async {
-    Map<String, dynamic> data;
+  static Future<Upload> uploadApi(String nik, String status, File file) async {
+    Map<String, dynamic>? data;
 
     String tgl = "";
     String jam = "";
@@ -35,7 +35,7 @@ class Upload {
     var response = await request.send();
     await for (String s in response.stream.transform(utf8.decoder)) {
       data = jsonDecode(s);
-      print(data);
     }
+    return Upload.fromJson(data!);
   }
 }

@@ -29,6 +29,8 @@ class _HomePageState extends State<HomePage> {
   iosLocation.Location locationIOS = iosLocation.Location();
   late final handler.Permission _permission = handler.Permission.location;
   late handler.PermissionStatus _permissionStatus;
+  bool _enMasuk=false;
+  bool _enPulang=false;
   String? _jam;
   String? _menit;
   String? _detik;
@@ -497,13 +499,13 @@ class _HomePageState extends State<HomePage> {
                   "Masuk",
                   style: TextStyle(color: Colors.white),
                 ),
-                onPressed: () {
+                onPressed: _enMasuk?() {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (BuildContext context) =>
-                              const AbsenMasuk()));
-                },
+                               AbsenMasuk(nik: nik!,status: "Masuk",))).then((value) => getPref(context));
+                }:null,
               ),
             ),
           ),
@@ -512,19 +514,19 @@ class _HomePageState extends State<HomePage> {
           child: Opacity(
             opacity: _pulang,
             child: Padding(
-              padding: const EdgeInsets.only(left: 2.5),
+              padding:  EdgeInsets.only(left: 2.5),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(primary: Colors.red),
-                child: const Text(
+                child:  Text(
                   "Pulang",
                   style: TextStyle(color: Colors.white),
                 ),
-                onPressed: () {
+                onPressed: _enPulang?() {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const PulangAbsen()));
-                },
+                          builder: (context) => AbsenPulang(nik:nik!,status: "Pulang",))).then((value) => getPref(context));
+                }:null,
               ),
             ),
           ),
@@ -648,14 +650,27 @@ class _HomePageState extends State<HomePage> {
 
   loadLastAbsen(String _nik) async {
     var lastAbsen = await LastAbsen.apiAbsenTigaHari(_nik);
+    print("LASTAbsen ${lastAbsen.lastNew}");
     if (lastAbsen != null) {
       if (lastAbsen.lastAbsen != null) {
         var absenTerakhir = lastAbsen.lastAbsen;
         print("LastAbsen : ${lastAbsen.lastAbsen}");
           if (absenTerakhir == "Masuk") {
-            _masuk = 0.0;
-            _pulang = 1.0;
+            if(lastAbsen.lastNew=="Pulang"){
+              _masuk = 1.0;
+              _enMasuk = true;
+              _enPulang = false;
+              _pulang = 0.0;
+            }else{
+              _enMasuk = false;
+              _enPulang = true;
+              _masuk = 0.0;
+              _pulang = 1.0;
+            }
+
           } else if (absenTerakhir == "Pulang") {
+            _enMasuk = true;
+            _enPulang = false;
             _masuk = 1.0;
             _pulang = 0.0;
           }

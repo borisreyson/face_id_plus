@@ -72,7 +72,7 @@ class _PulangAbsenState extends State<PulangAbsen> {
           child:
           (_cameraInitialized)
               ? AspectRatio(aspectRatio: _camera.value.aspectRatio,
-            child: CameraPreview(_camera),)
+              child: CameraPreview(_camera),)
               : CircularProgressIndicator()
       ),
       floatingActionButton: FloatingActionButton(
