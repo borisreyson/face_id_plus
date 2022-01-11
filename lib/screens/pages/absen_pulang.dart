@@ -377,7 +377,7 @@ class _AbsenPulangState extends State<AbsenPulang> {
         format: imglib.Format.bgra,
         );
       }
-      img= imglib.flipVertical(img!);
+      img= imglib.flipVertical(img);
       img = imglib.copyCrop(img, 0, 100, img.width, img.height-100);
       imglib.PngEncoder pngEncoder = imglib.PngEncoder();
       return pngEncoder.encodeImage(img);

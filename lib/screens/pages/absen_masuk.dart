@@ -88,7 +88,7 @@ class _AbsenMasukState extends State<AbsenMasuk> {
     externalDirectory  = await getApplicationDocumentsDirectory();
     String directoryPath = '${externalDirectory.path}/FaceIdPlus';
     await Directory(directoryPath).create(recursive: true);
-    String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
+    String filePath = '$directoryPath/${DateTime.now()}_masuk.jpg';
     try {
       XFile image = await _cameraController!.takePicture();
       image.saveTo(filePath);
@@ -123,7 +123,7 @@ class _AbsenMasukState extends State<AbsenMasuk> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text("Absen Pulang"),
+          title: const Text("Absen Masuk"),
           leading: InkWell(
             splashColor: const Color(0xff000000),
             child: const Icon(
@@ -376,7 +376,7 @@ class _AbsenMasukState extends State<AbsenMasuk> {
         format: imglib.Format.bgra,
       );
     }
-    img= imglib.flipVertical(img!);
+    img= imglib.flipVertical(img);
     img = imglib.copyCrop(img, 0, 100, img.width, img.height-100);
     imglib.PngEncoder pngEncoder = imglib.PngEncoder();
     return pngEncoder.encodeImage(img);

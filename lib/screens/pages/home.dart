@@ -51,6 +51,7 @@ class _HomePageState extends State<HomePage> {
   late BitmapDescriptor customIcon;
   late Set<Marker> markers ={};
   late Marker marker;
+  bool lokasiPalsu = false;
   static const CameraPosition _kGooglePlex =
       CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 14.2746);
   Future<void> locatePosition() async {
@@ -60,7 +61,8 @@ class _HomePageState extends State<HomePage> {
     currentPosition = position!;
     myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
     // }
-    print("locationIOS1 : ${myLocation}");
+    print("locationIOS1 : ${position?.isMocked}");
+    lokasiPalsu = position!.isMocked;
     if (myLocation != null) {
       if (!iosMapLocation) {
         iosMapLocation = true;
@@ -77,6 +79,9 @@ class _HomePageState extends State<HomePage> {
     setCustomMapPin();
     if (Platform.isAndroid) {
       _requestLocation();
+    }
+    if(lokasiPalsu == true){
+      appClose();
     }
     nama = "";
     nik = "";
@@ -676,5 +681,17 @@ class _HomePageState extends State<HomePage> {
           }
       }
     }
+  }
+  Widget appClose(){
+    return AlertDialog(
+      title: const Text('Lokasi'),
+      content: const Text('Aplikasi Fake Gps / Lokasi Palsu Terdetek!'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => SystemNavigator.pop(),
+          child: const Text('Keluar'),
+        ),
+      ],
+    );
   }
 }

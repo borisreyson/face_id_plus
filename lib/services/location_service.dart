@@ -17,6 +17,8 @@ class LocationService{
   Stream<UserLocation> get locationStream => _locationController.stream;
   LocationService() {
     location.requestPermission().then((PermissionStatus granted){
+      print("MockLocation ${granted}");
+
       if(granted==PermissionStatus.granted){
         location.onLocationChanged.listen((locationData) {
           if(locationData!=null){
