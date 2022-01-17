@@ -51,6 +51,20 @@ class _FormLoginState extends State<FormLogin> {
       FaceModel.loginApiFace(username, password).then((value) {
         faceModel = value;
         if (faceModel != null) {
+          if(faceModel!.datalogin==null){
+          _usernameFocus.requestFocus();
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("Username/ Nik Atau Password Salah!!")));
+            _roundedController.error();
+            _usernameController.clear();
+            _passwordController.clear();
+            Future.delayed(const Duration(milliseconds: 1000), () {
+              _roundedController.reset();
+            });
+          });
+          }else{
+
           Datalogin datalogin = faceModel!.datalogin!;
           setPref(
               1,
@@ -72,6 +86,7 @@ class _FormLoginState extends State<FormLogin> {
                   (context) => false);
             });
           });
+          }
         } else {
           _usernameFocus.requestFocus();
           Future.delayed(const Duration(milliseconds: 1000), () {

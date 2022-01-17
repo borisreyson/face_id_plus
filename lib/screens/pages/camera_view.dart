@@ -1,20 +1,21 @@
 import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:face_id_plus/main.dart';
+import 'package:image/image.dart' as imgLib;
 
 enum ScreenMode { liveFeed, gallery }
 
 class CameraView extends StatefulWidget {
   CameraView(
       {Key? key,
-        required this.title,
-        required this.customPaint,
-        required this.onImage,
-        this.initialDirection = CameraLensDirection.back})
+      required this.title,
+      required this.customPaint,
+      required this.onImage,
+      this.initialDirection = CameraLensDirection.back})
       : super(key: key);
 
   final String title;
@@ -27,16 +28,22 @@ class CameraView extends StatefulWidget {
 }
 
 class _CameraViewState extends State<CameraView> {
+  List<CameraDescription> cameras = [];
   ScreenMode _mode = ScreenMode.liveFeed;
   CameraController? _controller;
   File? _image;
   ImagePicker? _imagePicker;
-  int _cameraIndex = 0;
+  int _cameraIndex = 1;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
 
   @override
   void initState() {
+    cekCameras();
     super.initState();
+  }
+
+  cekCameras() async {
+    cameras = await availableCameras();
 
     _imagePicker = ImagePicker();
     for (var i = 0; i < cameras.length; i++) {
@@ -67,8 +74,8 @@ class _CameraViewState extends State<CameraView> {
                 _mode == ScreenMode.liveFeed
                     ? Icons.photo_library_outlined
                     : (Platform.isIOS
-                    ? Icons.camera_alt_outlined
-                    : Icons.camera),
+                        ? Icons.camera_alt_outlined
+                        : Icons.camera),
               ),
             ),
           ),
@@ -145,20 +152,20 @@ class _CameraViewState extends State<CameraView> {
     return ListView(shrinkWrap: true, children: [
       _image != null
           ? Container(
-        height: 400,
-        width: 400,
-        child: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            Image.file(_image!),
-            if (widget.customPaint != null) widget.customPaint!,
-          ],
-        ),
-      )
+              height: 400,
+              width: 400,
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  Image.file(_image!),
+                  if (widget.customPaint != null) widget.customPaint!,
+                ],
+              ),
+            )
           : Icon(
-        Icons.image,
-        size: 200,
-      ),
+              Icons.image,
+              size: 200,
+            ),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: ElevatedButton(
@@ -194,17 +201,22 @@ class _CameraViewState extends State<CameraView> {
       _mode = ScreenMode.liveFeed;
       await _startLiveFeed();
     }
+    // await _controller?.stopImageStream();
+    await _controller?.startImageStream((CameraImage image) {
+      print("IMG $image");
+    });
     setState(() {});
   }
 
   Future _startLiveFeed() async {
-    final camera = cameras[_cameraIndex];
+    int _frame = 0;
+    final camera = cameras[1];
     _controller = CameraController(
       camera,
       ResolutionPreset.low,
       enableAudio: false,
     );
-    _controller?.initialize().then((_) {
+    await _controller?.initialize().then((_) {
       if (!mounted) {
         return;
       }
@@ -215,9 +227,15 @@ class _CameraViewState extends State<CameraView> {
       _controller?.getMaxZoomLevel().then((value) {
         maxZoomLevel = value;
       });
-      _controller?.startImageStream(_processCameraImage);
+      // _controller?.startImageStream((CameraImage image) {
+      //   _frame++;
+      // });
+      // _controller?.buildPreview;
       setState(() {});
     });
+
+    await Future.delayed(Duration(seconds: 5));
+    // expect(_frame > 30, true);
   }
 
   Future _stopLiveFeed() async {
@@ -244,44 +262,53 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Future _processCameraImage(CameraImage image) async {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
+    //   final WriteBuffer allBytes = WriteBuffer();
+    //   for (Plane plane in image.planes) {
+    //     allBytes.putUint8List(plane.bytes);
+    //   }
+    //   final bytes = allBytes.done().buffer.asUint8List();
 
-    final Size imageSize =
-    Size(image.width.toDouble(), image.height.toDouble());
+    //   final Size imageSize =
+    //       Size(image.width.toDouble(), image.height.toDouble());
 
-    final camera = cameras[_cameraIndex];
-    final imageRotation =
-        InputImageRotationMethods.fromRawValue(camera.sensorOrientation) ??
-            InputImageRotation.Rotation_0deg;
+    //   final camera = cameras[_cameraIndex];
+    //   final imageRotation =
+    //       InputImageRotationMethods.fromRawValue(camera.sensorOrientation) ??
+    //           InputImageRotation.Rotation_0deg;
 
-    final inputImageFormat =
-        InputImageFormatMethods.fromRawValue(image.format.raw) ??
-            InputImageFormat.NV21;
+    //   final inputImageFormat = (Platform.isAndroid)
+    //       ? InputImageFormatMethods.fromRawValue(image.format.raw)
+    //       : InputImageFormat.YUV420;
 
-    final planeData = image.planes.map(
-          (Plane plane) {
-        return InputImagePlaneMetadata(
-          bytesPerRow: plane.bytesPerRow,
-          height: plane.height,
-          width: plane.width,
-        );
-      },
-    ).toList();
+    //   final planeData = image.planes.map(
+    //     (Plane plane) {
+    //       return InputImagePlaneMetadata(
+    //         bytesPerRow: plane.bytesPerRow,
+    //         height: plane.height,
+    //         width: plane.width,
+    //       );
+    //     },
+    //   ).toList();
 
-    final inputImageData = InputImageData(
-      size: imageSize,
-      imageRotation: imageRotation,
-      inputImageFormat: inputImageFormat,
-      planeData: planeData,
-    );
+    //   final inputImageData = InputImageData(
+    //     size: imageSize,
+    //     imageRotation: imageRotation,
+    //     inputImageFormat: inputImageFormat!,
+    //     planeData: planeData,
+    //   );
 
-    final inputImage =
-    InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+    //   final inputImage =
+    //       InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
-    widget.onImage(inputImage);
+    //   widget.onImage(inputImage);
+  }
+
+  takPicture() async {
+    var img = await _controller?.takePicture();
+
+    final path = img?.path;
+    final bytes = await File(path!).readAsBytes();
+    final imgLib.Image image = imgLib.decodeImage(bytes)!;
+    // _processCameraImage(image);
   }
 }

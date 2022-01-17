@@ -1,0 +1,27 @@
+# ninja log v5
+0	75	1641964558	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	f5a80774c48f2a82
+76	126	1641964558	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/x86_64/libconvertImage.so	22dfd3b594ce7614
+0	9	0	clean	bbff04781a28f001
+0	8	0	clean	bbff04781a28f001
+1	70	1641964635	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	f5a80774c48f2a82
+70	117	1641964635	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/x86_64/libconvertImage.so	22dfd3b594ce7614
+0	9	0	clean	bbff04781a28f001
+0	7	0	clean	bbff04781a28f001
+0	82	1641965287	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	f5a80774c48f2a82
+82	206	1641965287	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/x86_64/libconvertImage.so	22dfd3b594ce7614
+0	9	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+0	12	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+1	108	1641965439	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	f5a80774c48f2a82
+109	216	1641965439	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/x86_64/libconvertImage.so	22dfd3b594ce7614
+0	10	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+2	114	1641966004	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	f5a80774c48f2a82
+114	276	1641966004	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/x86_64/libconvertImage.so	22dfd3b594ce7614
+0	7	0	clean	bbff04781a28f001
+0	7	0	clean	bbff04781a28f001
+0	12	0	clean	bbff04781a28f001
+0	10	0	clean	bbff04781a28f001
+2	78	1641971044	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	f5a80774c48f2a82
+78	182	1641971044	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/x86_64/libconvertImage.so	22dfd3b594ce7614

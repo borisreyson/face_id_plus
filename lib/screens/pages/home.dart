@@ -5,9 +5,15 @@ import 'package:face_id_plus/model/last_absen.dart';
 import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/screens/pages/absen_masuk.dart';
 import 'package:face_id_plus/screens/pages/absen_pulang.dart';
+import 'package:face_id_plus/screens/pages/area.dart';
+import 'package:face_id_plus/screens/pages/camera_view.dart';
+import 'package:face_id_plus/screens/pages/ios/pulang_ios.dart';
+import 'package:face_id_plus/screens/pages/maps.dart';
+import 'package:face_id_plus/screens/pages/painters/face_detector_painter.dart';
 import 'package:face_id_plus/screens/pages/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -29,8 +35,16 @@ class _HomePageState extends State<HomePage> {
   iosLocation.Location locationIOS = iosLocation.Location();
   late final handler.Permission _permission = handler.Permission.location;
   late handler.PermissionStatus _permissionStatus;
-  bool _enMasuk=false;
-  bool _enPulang=false;
+  bool _enMasuk = false;
+  bool _enPulang = false;
+  CustomPaint? customPaint;
+  bool _googleMaps = false;
+  FaceDetector faceDetector =
+      GoogleMlKit.vision.faceDetector(const FaceDetectorOptions(
+    enableContours: true,
+    enableClassification: true,
+  ));
+  bool isBusy = false;
   String? _jam;
   String? _menit;
   String? _detik;
@@ -49,19 +63,16 @@ class _HomePageState extends State<HomePage> {
   final _map_controller = Completer();
   late GoogleMapController _googleMapController;
   late BitmapDescriptor customIcon;
-  late Set<Marker> markers ={};
+  late Set<Marker> markers = {};
   late Marker marker;
   bool lokasiPalsu = false;
   static const CameraPosition _kGooglePlex =
       CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 14.2746);
   Future<void> locatePosition() async {
-    // if (Platform.isAndroid) {
     position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
     currentPosition = position!;
     myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
-    // }
-    print("locationIOS1 : ${position?.isMocked}");
     lokasiPalsu = position!.isMocked;
     if (myLocation != null) {
       if (!iosMapLocation) {
@@ -80,7 +91,7 @@ class _HomePageState extends State<HomePage> {
     if (Platform.isAndroid) {
       _requestLocation();
     }
-    if(lokasiPalsu == true){
+    if (lokasiPalsu == true) {
       appClose();
     }
     nama = "";
@@ -97,16 +108,23 @@ class _HomePageState extends State<HomePage> {
     });
     super.initState();
   }
+
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
     ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width);
     ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
   }
+
   void setCustomMapPin() async {
-    final Uint8List markerIcon = await getBytesFromAsset('assets/images/abp_60x60.png', 60);
+    final Uint8List markerIcon =
+        await getBytesFromAsset('assets/images/abp_60x60.png', 60);
     customIcon = await BitmapDescriptor.fromBytes(markerIcon);
   }
+
   @override
   Widget build(BuildContext context) {
     return _mainContent();
@@ -116,6 +134,17 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
+
+          (nik=="18060207")?IconButton(
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => const AreaAbp()));
+            },
+            icon: const Icon(Icons.map_sharp),
+            color: Colors.white,
+          ):Container(),
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -133,7 +162,11 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFFFFFFF),
       body: Column(
         children: <Widget>[
-          (Platform.isAndroid) ? _headerContent() : _headerIos(),
+          (_googleMaps)?
+          (Platform.isAndroid) ? _headerContent() : _headerIos():const Padding(
+            padding: EdgeInsets.only(top:40.0),
+            child: CircularProgressIndicator(),
+          ),
           const SizedBox(height: 8),
           Expanded(
             child: IntrinsicHeight(child: _futureBuilder()),
@@ -167,6 +200,7 @@ class _HomePageState extends State<HomePage> {
               return _loadMaps(_polygons, pointAbp);
             } else {
               _requestLocation();
+              _googleMaps = false;
               return const Center(child: CircularProgressIndicator());
             }
           } else if (Platform.isIOS) {
@@ -183,9 +217,11 @@ class _HomePageState extends State<HomePage> {
               return _loadMaps(_polygons, pointAbp);
             }
           }
+          _googleMaps = false;
           return const Center(child: CircularProgressIndicator());
         } else {
           _loadArea();
+          _googleMaps = false;
           return const Center(child: CircularProgressIndicator());
         }
       },
@@ -195,11 +231,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> iosGetLocation() async {
     iosLocation.LocationData _locationData = await locationIOS.getLocation();
     myLocation = LatLng(_locationData.latitude!, _locationData.longitude!);
-      if (myLocation != null) {
-        iosMapLocation = true;
-      } else {
-        iosMapLocation = false;
-      }
+    if (myLocation != null) {
+      iosMapLocation = true;
+    } else {
+      iosMapLocation = false;
+    }
     return;
   }
 
@@ -220,13 +256,13 @@ class _HomePageState extends State<HomePage> {
       onMapCreated: (GoogleMapController controller) {
         _map_controller.complete(controller);
         _googleMapController = controller;
-
+        _googleMaps = true;
         setState(() {
           marker = Marker(
-            markerId: MarkerId('abpenergy'),
-            position: LatLng(-0.5634222, 117.0139606),
+            markerId: const MarkerId('abpenergy'),
+            position: const LatLng(-0.5634222, 117.0139606),
             icon: customIcon,
-            infoWindow: InfoWindow(
+            infoWindow: const InfoWindow(
               title: 'PT Alamjaya Bara Pratama',
             ),
           );
@@ -504,13 +540,17 @@ class _HomePageState extends State<HomePage> {
                   "Masuk",
                   style: TextStyle(color: Colors.white),
                 ),
-                onPressed: _enMasuk?() {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) =>
-                               AbsenMasuk(nik: nik!,status: "Masuk",))).then((value) => getPref(context));
-                }:null,
+                onPressed: _enMasuk
+                    ? () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (BuildContext context) => AbsenMasuk(
+                                      nik: nik!,
+                                      status: "Masuk",
+                                    ))).then((value) => getPref(context));
+                      }
+                    : null,
               ),
             ),
           ),
@@ -519,19 +559,28 @@ class _HomePageState extends State<HomePage> {
           child: Opacity(
             opacity: _pulang,
             child: Padding(
-              padding:  EdgeInsets.only(left: 2.5),
+              padding: const EdgeInsets.only(left: 2.5),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(primary: Colors.red),
-                child:  Text(
+                child: const Text(
                   "Pulang",
                   style: TextStyle(color: Colors.white),
                 ),
-                onPressed: _enPulang?() {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => AbsenPulang(nik:nik!,status: "Pulang",))).then((value) => getPref(context));
-                }:null,
+                onPressed: _enPulang
+                    ? () {
+                        Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => (Platform.isIOS)
+                                        ? IosPulang(
+                                            nik: nik!,
+                                            status: "Pulang",
+                                          )
+                                        : AbsenPulang(
+                                            nik: nik!, status: "Pulang")))
+                            .then((value) => getPref(context));
+                      }
+                    : null,
               ),
             ),
           ),
@@ -581,7 +630,6 @@ class _HomePageState extends State<HomePage> {
   Future<List<MapAreModel>> _loadArea() async {
     outside = true;
     _permissionStatus = await _permission.status;
-
     var area = await MapAreModel.mapAreaApi("0");
     return area;
   }
@@ -620,15 +668,15 @@ class _HomePageState extends State<HomePage> {
   getPref(BuildContext context) async {
     var sharedPref = await SharedPreferences.getInstance();
     isLogin = sharedPref.getInt("isLogin")!;
-      if (isLogin == 1) {
-        nama = sharedPref.getString("nama");
-        nik = sharedPref.getString("nik");
-        int? showAbsen = sharedPref.getInt("show_absen");
-        loadLastAbsen(nik!);
-      } else {
-        nama = "";
-        nik = "";
-      }
+    if (isLogin == 1) {
+      nama = sharedPref.getString("nama");
+      nik = sharedPref.getString("nik");
+      int? showAbsen = sharedPref.getInt("show_absen");
+      loadLastAbsen(nik!);
+    } else {
+      nama = "";
+      nik = "";
+    }
   }
 
   _requestLocation() async {
@@ -660,29 +708,34 @@ class _HomePageState extends State<HomePage> {
       if (lastAbsen.lastAbsen != null) {
         var absenTerakhir = lastAbsen.lastAbsen;
         print("LastAbsen : ${lastAbsen.lastAbsen}");
-          if (absenTerakhir == "Masuk") {
-            if(lastAbsen.lastNew=="Pulang"){
-              _masuk = 1.0;
-              _enMasuk = true;
-              _enPulang = false;
-              _pulang = 0.0;
-            }else{
-              _enMasuk = false;
-              _enPulang = true;
-              _masuk = 0.0;
-              _pulang = 1.0;
-            }
-
-          } else if (absenTerakhir == "Pulang") {
+        if (absenTerakhir == "Masuk") {
+          if (lastAbsen.lastNew == "Pulang") {
+            _masuk = 1.0;
             _enMasuk = true;
             _enPulang = false;
-            _masuk = 1.0;
             _pulang = 0.0;
+          } else {
+            _enMasuk = false;
+            _enPulang = true;
+            _masuk = 0.0;
+            _pulang = 1.0;
           }
+        } else if (absenTerakhir == "Pulang") {
+          _enMasuk = true;
+          _enPulang = false;
+          _masuk = 1.0;
+          _pulang = 0.0;
+        }
+      } else {
+        _enMasuk = true;
+        _enPulang = false;
+        _masuk = 1.0;
+        _pulang = 0.0;
       }
     }
   }
-  Widget appClose(){
+
+  Widget appClose() {
     return AlertDialog(
       title: const Text('Lokasi'),
       content: const Text('Aplikasi Fake Gps / Lokasi Palsu Terdetek!'),
@@ -693,5 +746,32 @@ class _HomePageState extends State<HomePage> {
         ),
       ],
     );
+  }
+
+  Future<void> processImage(InputImage inputImage) async {
+    if (isBusy) return;
+    isBusy = true;
+    final faces = await faceDetector.processImage(inputImage);
+    print('Found ${faces.length} faces');
+    if (inputImage.inputImageData?.size != null &&
+        inputImage.inputImageData?.imageRotation != null) {
+      final painter = FaceDetectorPainter(
+          faces,
+          inputImage.inputImageData!.size,
+          inputImage.inputImageData!.imageRotation);
+      customPaint = CustomPaint(painter: painter);
+    } else {
+      customPaint = null;
+    }
+    isBusy = false;
+    if (mounted) {
+      setState(() {
+        print("Mounted : ${mounted}");
+        if (faces.length == 1) {
+          Future.delayed(const Duration(milliseconds: 1000));
+          Navigator.maybePop(context, inputImage.filePath);
+        }
+      });
+    }
   }
 }

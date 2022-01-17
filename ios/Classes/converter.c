@@ -18,7 +18,7 @@ int getRotatedImageByteIndex(int x, int y, int rotatedImageWidth){
 }
 
 uint32_t *convertImage(uint8_t *plane0, uint8_t *plane1, uint8_t *plane2, int bytesPerRow, int bytesPerPixel, int width, int height){
-     int hexFF = 255;
+    int hexFF = 255;
     int x, y, uvIndex, index;
     int yp, up, vp;
     int r, g, b;
@@ -35,14 +35,14 @@ uint32_t *convertImage(uint8_t *plane0, uint8_t *plane1, uint8_t *plane2, int by
             yp = plane0[index];
             up = plane1[uvIndex];
             vp = plane2[uvIndex];
-          
+        
             rt = round(yp + vp * 1436 / 1024 - 179);
             gt = round(yp - up * 46549 / 131072 + 44 - vp * 93604 / 131072 + 91);
             bt = round(yp + up * 1814 / 1024 - 227);
             r = clamp(0, 255, rt);
             g = clamp(0, 255, gt);
             b = clamp(0, 255, bt);
-          
+        
             image[getRotatedImageByteIndex(y, x, height)] = (hexFF << 24) | (b << 16) | (g << 8) | r;
         }
     }
@@ -50,6 +50,6 @@ uint32_t *convertImage(uint8_t *plane0, uint8_t *plane1, uint8_t *plane2, int by
 }
 
 
-int main(){
-    return 0;
-}
+//int main(){
+//    return 0;
+//}

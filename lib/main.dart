@@ -1,6 +1,5 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:face_id_plus/intro.dart';
-import 'package:face_id_plus/loading.dart';
 import 'package:face_id_plus/services/firebase_config.dart';
 import 'package:face_id_plus/services/location_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,13 +8,12 @@ import "package:flutter/services.dart";
 import 'dart:io' show Platform;
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseConfig.platformOptions);
-  print('Handling a background message ${message.messageId}');
-}
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   await Firebase.initializeApp(options: DefaultFirebaseConfig.platformOptions);
+//   print('Handling a background message ${message.messageId}');
+// }
 
 late AndroidNotificationChannel channel;
 late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
@@ -61,14 +59,14 @@ class MyApp extends StatelessWidget {
           splash: Image.asset('assets/images/ic_abp.png'),
           duration: 1500,
           splashTransition: SplashTransition.scaleTransition,
-          nextScreen: SliderIntro());
+          nextScreen: const SliderIntro());
       // Splash();
     } else if (Platform.isIOS) {
       return AnimatedSplashScreen(
           splash: Image.asset('assets/images/ic_abp.png'),
           duration: 1500,
           splashTransition: SplashTransition.scaleTransition,
-          nextScreen: SliderIntro());
+          nextScreen: const SliderIntro());
     }
   }
 }

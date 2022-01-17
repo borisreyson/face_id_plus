@@ -57,10 +57,11 @@ class _AbsenMasukState extends State<AbsenMasuk> {
       _cameraController =
           CameraController(cameras[cameraPick], ResolutionPreset.medium);
 
-      await _cameraController!.initialize().then((_) async {
+      await _cameraController?.initialize().then((_) async {
         // Start ImageStream
-        await _cameraController!.startImageStream((CameraImage image) =>
-            _processCameraImage(image));
+        await _cameraController?.startImageStream((CameraImage image) =>
+            _processCameraImage(image)
+            );
         setState(() {
           _cameraInitialized = true;
         });
@@ -75,7 +76,7 @@ class _AbsenMasukState extends State<AbsenMasuk> {
   Future<void> initCameras() async {
 
     if(cameras.isNotEmpty){
-      if(cameras.length > 0){
+      if(cameras.isNotEmpty){
         cameraPick = 1;
       }
     }
