@@ -1,0 +1,27 @@
+# ninja log v5
+0	84	1641964558	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	36f2813820a318e0
+84	133	1641964558	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/arm64-v8a/libconvertImage.so	730df3b8ab5461b8
+1	9	0	clean	bbff04781a28f001
+0	7	0	clean	bbff04781a28f001
+0	84	1641964635	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	36f2813820a318e0
+84	125	1641964635	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/arm64-v8a/libconvertImage.so	730df3b8ab5461b8
+0	9	0	clean	bbff04781a28f001
+0	8	0	clean	bbff04781a28f001
+0	89	1641965286	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	36f2813820a318e0
+89	161	1641965286	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/arm64-v8a/libconvertImage.so	730df3b8ab5461b8
+0	10	0	clean	bbff04781a28f001
+0	7	0	clean	bbff04781a28f001
+0	10	0	clean	bbff04781a28f001
+0	11	0	clean	bbff04781a28f001
+0	121	1641965439	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	36f2813820a318e0
+121	206	1641965439	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/arm64-v8a/libconvertImage.so	730df3b8ab5461b8
+0	8	0	clean	bbff04781a28f001
+0	7	0	clean	bbff04781a28f001
+1	120	1641966003	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	36f2813820a318e0
+120	254	1641966003	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/arm64-v8a/libconvertImage.so	730df3b8ab5461b8
+0	9	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+0	14	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+2	106	1641971044	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	36f2813820a318e0
+106	173	1641971044	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/arm64-v8a/libconvertImage.so	730df3b8ab5461b8

@@ -56,7 +56,7 @@ class _AbsenPulangState extends State<AbsenPulang> {
     cameras = await availableCameras();
     if (cameras.isNotEmpty) {
       _cameraController =
-          CameraController(cameras[cameraPick], ResolutionPreset.medium);
+          CameraController(cameras[cameraPick], ResolutionPreset.medium,enableAudio: false);
 
       await _cameraController!.initialize().then((_) async {
         // Start ImageStream
@@ -76,7 +76,7 @@ class _AbsenPulangState extends State<AbsenPulang> {
   Future<void> initCameras() async {
 
     if(cameras.isNotEmpty){
-      if(cameras.length > 0){
+      if(cameras.isNotEmpty){
         cameraPick = 1;
       }
     }
@@ -85,23 +85,6 @@ class _AbsenPulangState extends State<AbsenPulang> {
     });
   }
 
-  Future<File> takePicture() async {
-    externalDirectory  = await getApplicationDocumentsDirectory();
-    String directoryPath = '${externalDirectory.path}/FaceIdPlus';
-    await Directory(directoryPath).create(recursive: true);
-    String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
-    try {
-      XFile image = await _cameraController!.takePicture();
-      image.saveTo(filePath);
-    } catch (e) {
-      print('Error : ${e.toString()}');
-      // return null;
-    }
-    var files = File(filePath);
-    var saving =await files.create(recursive: true);
-    print("Saving $saving");
-    return files;
-  }
 
   @override
   void initState() {
@@ -140,11 +123,10 @@ class _AbsenPulangState extends State<AbsenPulang> {
             child: (visible) ? cameraFrame() : imgFrame()),
       floatingActionButton: (visible)? FloatingActionButton(
         onPressed: (){
-          print("Save image $_savedImage");
           _processImageStream(_savedImage);
         },
         tooltip: 'Scan Wajah',
-        child: Icon(Icons.camera),
+        child: const Icon(Icons.camera),
       ):Visibility(visible: false,child: Container(),),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
 
@@ -207,7 +189,6 @@ class _AbsenPulangState extends State<AbsenPulang> {
             child: CircularProgressIndicator(),
           ),
         ),
-        (visible) ? _bottomContent() : Container()
       ],
     );
   }
@@ -227,43 +208,10 @@ class _AbsenPulangState extends State<AbsenPulang> {
                   )));
   }
 
-  Widget _bottomContent() {
-    return Align(
-      alignment: FractionalOffset.bottomCenter,
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        color: Colors.white,
-        padding: const EdgeInsets.only(left: 4.0, right: 4.0),
-        child: Visibility(
-          visible: false,
-          child: ElevatedButton(
-              onPressed: () async {
-                if (!_cameraController!.value.isTakingPicture) {
-                  ImagePicker picker = ImagePicker();
-                  File result = await takePicture();
-                  _localFile;
-                  InputImage image = InputImage.fromFile(result);
-                  print("detect $image");
-                  print("detect $result");
-                  print("TAKE PICTURE");
-                  setState(() {
-                    // imageFile= result;
-                    processImage(image);
-                    visible = false;
-                  });
-                }
-              },
-              child: const Text("Scan Wajah")),
-        ),
-      ),
-    );
-  }
   Future<void> processImage(InputImage inputImage) async {
-    print("Mulai detect");
     if (isBusy) return;
     isBusy = true;
     final faces = await faceDetector.processImage(inputImage);
-
     if (inputImage.inputImageData?.size != null &&
         inputImage.inputImageData?.imageRotation != null) {
       final painter = FaceDetectorPainter(
@@ -272,32 +220,24 @@ class _AbsenPulangState extends State<AbsenPulang> {
           inputImage.inputImageData!.imageRotation);
           customPaint = CustomPaint(painter: painter);
       intImage =  await convertImage(_savedImage);
-
-      print("Di detect");
-      print("Di detect ${intImage}");
       _cameraInitialized=false;
       _stopLiveFeed();
       savingImage();
     } else {
       customPaint = null;
-      print("Tidak di detect");
     }
     isBusy = false;
     if (mounted) {
-      print("Di detect $mounted");
-
       setState(() {});
     }
   }
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
     // For your reference print the AppDoc directory
-    print(directory.path);
     return directory.path;
   }
   Future<File> get _localFile async {
     final path = await _localPath;
-    print("Lokasi $path");
     return File('$path/data.txt');
   }
   Future _processImageStream(CameraImage image) async {
@@ -313,7 +253,7 @@ class _AbsenPulangState extends State<AbsenPulang> {
     final camera = cameras[cameraPick];
     final imageRotation =
         InputImageRotationMethods.fromRawValue(camera.sensorOrientation) ??
-            InputImageRotation.Rotation_180deg;
+            InputImageRotation.Rotation_0deg;
 
     final inputImageFormat =
         InputImageFormatMethods.fromRawValue(image.format.raw) ??
@@ -338,7 +278,6 @@ class _AbsenPulangState extends State<AbsenPulang> {
 
     final inputImage =
     InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
-
     processImage(inputImage);
   }
   Future<List<int>> convertImage(CameraImage image) async {
@@ -398,7 +337,6 @@ class _AbsenPulangState extends State<AbsenPulang> {
       visible = false;
       detect=true;
       setState(() {
-
       });
     }
   }

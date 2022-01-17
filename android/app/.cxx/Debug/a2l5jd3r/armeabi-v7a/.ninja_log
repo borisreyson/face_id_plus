@@ -1,0 +1,27 @@
+# ninja log v5
+0	96	1641964558	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	34587a8ed5487a5a
+97	153	1641964558	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/armeabi-v7a/libconvertImage.so	77652805bb1a9a30
+0	11	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+0	114	1641964635	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	34587a8ed5487a5a
+115	190	1641964635	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/armeabi-v7a/libconvertImage.so	77652805bb1a9a30
+1	11	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+0	376	1641965286	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	34587a8ed5487a5a
+376	497	1641965286	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/armeabi-v7a/libconvertImage.so	77652805bb1a9a30
+0	9	0	clean	bbff04781a28f001
+0	8	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+0	10	0	clean	bbff04781a28f001
+0	375	1641965439	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	34587a8ed5487a5a
+375	494	1641965439	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/armeabi-v7a/libconvertImage.so	77652805bb1a9a30
+0	9	0	clean	bbff04781a28f001
+0	9	0	clean	bbff04781a28f001
+1	207	1641966003	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	34587a8ed5487a5a
+208	306	1641966003	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/armeabi-v7a/libconvertImage.so	77652805bb1a9a30
+0	10	0	clean	bbff04781a28f001
+0	8	0	clean	bbff04781a28f001
+0	10	0	clean	bbff04781a28f001
+0	11	0	clean	bbff04781a28f001
+1	296	1641971043	CMakeFiles/convertImage.dir/Users/borisreyson/StudioProjects/face_id_plus/ios/Classes/converter.c.o	34587a8ed5487a5a
+296	416	1641971044	/Users/borisreyson/StudioProjects/face_id_plus/build/app/intermediates/cxx/Debug/a2l5jd3r/obj/armeabi-v7a/libconvertImage.so	77652805bb1a9a30
