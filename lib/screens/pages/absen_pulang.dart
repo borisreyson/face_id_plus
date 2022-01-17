@@ -122,7 +122,8 @@ class _AbsenPulangState extends State<AbsenPulang> {
             color: const Color(0xf0D9D9D9),
             child: (visible) ? cameraFrame() : imgFrame()),
       floatingActionButton: (visible)? FloatingActionButton(
-        onPressed: (){
+        onPressed: (isBusy)?null:(){
+          isBusy=true;
           _processImageStream(_savedImage);
         },
         tooltip: 'Scan Wajah',
@@ -334,8 +335,11 @@ class _AbsenPulangState extends State<AbsenPulang> {
     var uploadRes = await Upload.uploadApi(widget.nik, widget.status, files);
     print("UploadResult ${uploadRes}");
     if(uploadRes!=null){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green,
+          content: Text("Absen Di Daftar!",style: TextStyle(color: Colors.white),)));
       visible = false;
       detect=true;
+      isBusy=false;
       setState(() {
       });
     }

@@ -6,9 +6,7 @@ import 'package:face_id_plus/model/map_area.dart';
 import 'package:face_id_plus/screens/pages/absen_masuk.dart';
 import 'package:face_id_plus/screens/pages/absen_pulang.dart';
 import 'package:face_id_plus/screens/pages/area.dart';
-import 'package:face_id_plus/screens/pages/camera_view.dart';
 import 'package:face_id_plus/screens/pages/ios/pulang_ios.dart';
-import 'package:face_id_plus/screens/pages/maps.dart';
 import 'package:face_id_plus/screens/pages/painters/face_detector_painter.dart';
 import 'package:face_id_plus/screens/pages/profile.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +20,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as iosLocation;
 import 'dart:ui' as ui;
 
-import 'new_absen_pulang.dart';
+import 'ios/masuk_ios.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -35,6 +34,8 @@ class _HomePageState extends State<HomePage> {
   iosLocation.Location locationIOS = iosLocation.Location();
   late final handler.Permission _permission = handler.Permission.location;
   late handler.PermissionStatus _permissionStatus;
+  String? jamMasuk;
+  String? jamPulang;
   bool _enMasuk = false;
   bool _enPulang = false;
   CustomPaint? customPaint;
@@ -66,15 +67,18 @@ class _HomePageState extends State<HomePage> {
   late Set<Marker> markers = {};
   late Marker marker;
   bool lokasiPalsu = false;
+  late Timer timerss;
   static const CameraPosition _kGooglePlex =
       CameraPosition(target: LatLng(-0.5634222, 117.0139606), zoom: 14.2746);
   Future<void> locatePosition() async {
     position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
     currentPosition = position!;
+
     myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
     lokasiPalsu = position!.isMocked;
     if (myLocation != null) {
+
       if (!iosMapLocation) {
         iosMapLocation = true;
       }
@@ -104,7 +108,7 @@ class _HomePageState extends State<HomePage> {
       DateFormat fmt = DateFormat("dd MMMM yyyy");
       DateTime now = DateTime.now();
       _tanggal = fmt.format(now);
-      Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
+      timerss = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
     });
     super.initState();
   }
@@ -236,6 +240,7 @@ class _HomePageState extends State<HomePage> {
     } else {
       iosMapLocation = false;
     }
+
     return;
   }
 
@@ -249,6 +254,8 @@ class _HomePageState extends State<HomePage> {
         outside = false;
         _diluarAbp = 1.0;
       }
+
+
     }
     return GoogleMap(
       initialCameraPosition: _kGooglePlex,
@@ -522,6 +529,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    timerss.cancel();
     super.dispose();
   }
 
@@ -529,7 +537,7 @@ class _HomePageState extends State<HomePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
+        (_enMasuk)?Expanded(
           child: Opacity(
             opacity: _masuk,
             child: Padding(
@@ -545,7 +553,10 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (BuildContext context) => AbsenMasuk(
+                                builder: (BuildContext context) => (Platform.isIOS)?IosMasuk(
+                                  nik: nik!,
+                                  status: "Masuk",
+                                ):AbsenMasuk(
                                       nik: nik!,
                                       status: "Masuk",
                                     ))).then((value) => getPref(context));
@@ -554,8 +565,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-        ),
-        Expanded(
+        ):Expanded(child: ElevatedButton(onPressed: null,
+        child: Text("${jamMasuk}"),)),
+        (_enPulang)?Expanded(
           child: Opacity(
             opacity: _pulang,
             child: Padding(
@@ -584,7 +596,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-        )
+        ):Expanded(child: ElevatedButton(onPressed: null,
+          child: Text("${jamPulang}")))
       ],
     );
   }
@@ -707,6 +720,7 @@ class _HomePageState extends State<HomePage> {
     if (lastAbsen != null) {
       if (lastAbsen.lastAbsen != null) {
         var absenTerakhir = lastAbsen.lastAbsen;
+        var jamAbsen = lastAbsen.presensiMasuk;
         print("LastAbsen : ${lastAbsen.lastAbsen}");
         if (absenTerakhir == "Masuk") {
           if (lastAbsen.lastNew == "Pulang") {
@@ -714,7 +728,10 @@ class _HomePageState extends State<HomePage> {
             _enMasuk = true;
             _enPulang = false;
             _pulang = 0.0;
+            jamPulang = "${jamAbsen?.jam}";
           } else {
+            jamMasuk = "${jamAbsen?.jam}";
+
             _enMasuk = false;
             _enPulang = true;
             _masuk = 0.0;

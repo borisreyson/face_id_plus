@@ -18,7 +18,7 @@ class _AdminListAbsenState extends State<AdminListAbsen> {
   int _selectedNavbar = 0;
   bool futureUpdate = true;
   String apiStatus = "Masuk";
-  String tanggal = DateTime(2021, 12, 20).toString();
+  String tanggal = DateTime.now().toString();
   final ScrollController _scrollController = ScrollController();
   @override
   Widget build(BuildContext context) {

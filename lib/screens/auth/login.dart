@@ -192,6 +192,7 @@ class _FormLoginState extends State<FormLogin> {
                       margin: const EdgeInsets.only(top: 50.0),
                     )),
                 TextFormField(
+                  keyboardType: TextInputType.number,
                   focusNode: _usernameFocus,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
@@ -217,6 +218,7 @@ class _FormLoginState extends State<FormLogin> {
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
+                  keyboardType: TextInputType.number,
                   focusNode: _passwordFocus,
                   obscureText: _passwordVisible,
                   textInputAction: TextInputAction.go,

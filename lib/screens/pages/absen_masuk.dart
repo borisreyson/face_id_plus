@@ -139,7 +139,8 @@ class _AbsenMasukState extends State<AbsenMasuk> {
           color: const Color(0xf0D9D9D9),
           child: (visible) ? cameraFrame() : imgFrame()),
       floatingActionButton: (visible)? FloatingActionButton(
-        onPressed: (){
+        onPressed: (isBusy)?null:(){
+          isBusy = true;
           print("Save image $_savedImage");
           _processImageStream(_savedImage);
         },
@@ -397,6 +398,9 @@ class _AbsenMasukState extends State<AbsenMasuk> {
     if(uploadRes!=null){
       visible = false;
       detect=true;
+      isBusy=false;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green,
+          content: Text("Absen Di Daftar!",style: TextStyle(color: Colors.white),)));
       setState(() {
 
       });

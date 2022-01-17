@@ -17,18 +17,18 @@ typedef convert_func = Pointer<Uint32> Function(
 typedef Convert = Pointer<Uint32> Function(
     Pointer<Uint8>, Pointer<Uint8>, Pointer<Uint8>, int, int, int, int);
 
-class IosPulang extends StatefulWidget {
+class IosMasuk extends StatefulWidget {
   final String nik;
   final String status;
 
-  const IosPulang({Key? key, required this.nik, required this.status})
+  const IosMasuk({Key? key, required this.nik, required this.status})
       : super(key: key);
 
   @override
-  _IosPulangState createState() => _IosPulangState();
+  _IosMasukState createState() => _IosMasukState();
 }
 
-class _IosPulangState extends State<IosPulang> {
+class _IosMasukState extends State<IosMasuk> {
   final DynamicLibrary convertImageLib = Platform.isAndroid
       ? DynamicLibrary.open("libconvertImage.so")
       : DynamicLibrary.process();
@@ -136,21 +136,21 @@ class _IosPulangState extends State<IosPulang> {
           child: (visible) ? cameraFrame() : imgFrame()),
       floatingActionButton: (visible)
           ? FloatingActionButton(
-              onPressed: (isBusy)?null:() async {
-                isBusy=false;
-                // _processImageStream(_savedImage);
-                waiting=true;
-                savFile = await _cameraController?.takePicture();
-                print("Gambar $savFile");
-                saveImage();
-              },
-              tooltip: 'Scan Wajah',
-              child: const Icon(Icons.camera),
-            )
+        onPressed: (isBusy)?null:() async {
+          isBusy=true;
+          // _processImageStream(_savedImage);
+          waiting=true;
+          savFile = await _cameraController?.takePicture();
+          print("Gambar $savFile");
+          saveImage();
+        },
+        tooltip: 'Scan Wajah',
+        child: const Icon(Icons.camera),
+      )
           : Visibility(
-              visible: false,
-              child: Container(),
-            ),
+        visible: false,
+        child: Container(),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
@@ -160,16 +160,16 @@ class _IosPulangState extends State<IosPulang> {
       children: [
         Positioned(
             child: Stack(
-          fit: StackFit.expand,
-          children: [
-            SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: (intImage != null)
-                    ? Image.memory(Uint8List.fromList(intImage!))
-                    : Image.file(File(savFile!.path))),
-            if (customPaint != null) customPaint!,
-          ],
-        )),
+              fit: StackFit.expand,
+              children: [
+                SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: (intImage != null)
+                        ? Image.memory(Uint8List.fromList(intImage!))
+                        : Image.file(File(savFile!.path))),
+                if (customPaint != null) customPaint!,
+              ],
+            )),
         Align(
           alignment: FractionalOffset.bottomCenter,
           child: Container(
@@ -178,23 +178,23 @@ class _IosPulangState extends State<IosPulang> {
             padding: const EdgeInsets.only(left: 4.0, right: 4.0),
             child: (detect)
                 ? ElevatedButton(
-                    onPressed: () {
-                      Navigator.maybePop(context);
-                    },
-                    child: const Text("Selesai"))
+                onPressed: () {
+                  Navigator.maybePop(context);
+                },
+                child: const Text("Selesai"))
                 : ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        visible = true;
-                        detect = false;
-                        initializeCamera();
-                        conv = convertImageLib
-                            .lookup<NativeFunction<convert_func>>(
-                                'convertImage')
-                            .asFunction<Convert>();
-                      });
-                    },
-                    child: const Text("Scan Ulang")),
+                onPressed: () {
+                  setState(() {
+                    visible = true;
+                    detect = false;
+                    initializeCamera();
+                    conv = convertImageLib
+                        .lookup<NativeFunction<convert_func>>(
+                        'convertImage')
+                        .asFunction<Convert>();
+                  });
+                },
+                child: const Text("Scan Ulang")),
           ),
         )
       ],
@@ -206,15 +206,15 @@ class _IosPulangState extends State<IosPulang> {
       children: [
         (_cameraInitialized)
             ? Container(
-                child: cameraPreview(),
-              )
+          child: cameraPreview(),
+        )
             : const Center(
-                child: SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(),
-                ),
-              ),
+          child: SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(),
+          ),
+        ),
       ],
     );
   }
@@ -230,8 +230,8 @@ class _IosPulangState extends State<IosPulang> {
             child: (_cameraController != null)
                 ? CameraPreview(_cameraController!)
                 : const Center(
-                    child: Text("Camera Tidak Tersedia!"),
-                  )));
+              child: Text("Camera Tidak Tersedia!"),
+            )));
   }
 
   Future<void> processImage(InputImage inputImage) async {
@@ -277,7 +277,7 @@ class _IosPulangState extends State<IosPulang> {
     final bytes = allBytes.done().buffer.asUint8List();
 
     final Size imageSize =
-        Size(image.width.toDouble(), image.height.toDouble());
+    Size(image.width.toDouble(), image.height.toDouble());
 
     final camera = cameras[cameraPick];
     final imageRotation =
@@ -289,7 +289,7 @@ class _IosPulangState extends State<IosPulang> {
             InputImageFormat.NV21;
 
     final planeData = image.planes.map(
-      (Plane plane) {
+          (Plane plane) {
         return InputImagePlaneMetadata(
           bytesPerRow: plane.bytesPerRow,
           height: plane.height,
@@ -306,7 +306,7 @@ class _IosPulangState extends State<IosPulang> {
     );
 
     final inputImage =
-        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+    InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
     processImage(inputImage);
   }
 
@@ -320,9 +320,9 @@ class _IosPulangState extends State<IosPulang> {
       // Assign the planes data to the pointers of the image
       Uint8List pointerList = p.asTypedList(_savedImage.planes[0].bytes.length);
       Uint8List pointerList1 =
-          p1.asTypedList(_savedImage.planes[1].bytes.length);
+      p1.asTypedList(_savedImage.planes[1].bytes.length);
       Uint8List pointerList2 =
-          p2.asTypedList(_savedImage.planes[2].bytes.length);
+      p2.asTypedList(_savedImage.planes[2].bytes.length);
       pointerList.setRange(
           0, _savedImage.planes[0].bytes.length, _savedImage.planes[0].bytes);
       pointerList1.setRange(
@@ -369,7 +369,7 @@ class _IosPulangState extends State<IosPulang> {
     externalDirectory = await getApplicationDocumentsDirectory();
     String directoryPath = '${externalDirectory.path}/FaceIdPlus';
     await Directory(directoryPath).create(recursive: true);
-    String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
+    String filePath = '$directoryPath/${DateTime.now()}_masuk.jpg';
     File _files = await File(filePath).writeAsBytes(intImage!);
     print("Filess ${_files}");
     absensiPulang(_files);
@@ -379,7 +379,7 @@ class _IosPulangState extends State<IosPulang> {
     externalDirectory = await getApplicationDocumentsDirectory();
     String directoryPath = '${externalDirectory.path}/FaceIdPlus';
     await Directory(directoryPath).create(recursive: true);
-    String filePath = '$directoryPath/${DateTime.now()}_pulang.jpg';
+    String filePath = '$directoryPath/${DateTime.now()}_masuk.jpg';
     File _files = File(savFile!.path);
     print("Filess ${_files}");
     absensiPulang(_files);
@@ -388,13 +388,13 @@ class _IosPulangState extends State<IosPulang> {
   absensiPulang(File files) async {
     var uploadRes = await Upload.uploadApi(widget.nik, widget.status, files);
     if (uploadRes != null) {
+      isBusy=false;
       print("UploadResult ${uploadRes.image}");
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green,
-          content: Text("Absen Di Daftar!",style: TextStyle(color: Colors.white),)));
       visible = false;
       detect = true;
       waiting=false;
-      isBusy=false;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green,
+          content: Text("Absen Di Daftar!",style: TextStyle(color: Colors.white),)));
       setState(() {});
     }
   }

@@ -2,34 +2,28 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:face_id_plus/model/map_area.dart';
-import 'package:face_id_plus/screens/pages/area.dart';
+import 'package:face_id_plus/model/map_point.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:location/location.dart' as iosLocation;
 import 'package:permission_handler/permission_handler.dart' as handler;
 import 'dart:ui' as ui;
 import 'dart:io' show Platform;
 
 class PointMaps extends StatefulWidget {
-  const PointMaps({Key? key}) : super(key: key);
-
+  final int btnAdd;
+  final int? idLok;
+  final LatLng? savedLok;
+  const PointMaps(int this.btnAdd,this.idLok,this.savedLok, {Key? key}) : super(key: key);
   @override
   _PointMapsState createState() => _PointMapsState();
 }
-
 class _PointMapsState extends State<PointMaps> {
-  bool _googleMaps = false;
   iosLocation.Location locationIOS = iosLocation.Location();
   late final handler.Permission _permission = handler.Permission.location;
   late handler.PermissionStatus _permissionStatus;
-  FaceDetector faceDetector =
-      GoogleMlKit.vision.faceDetector(const FaceDetectorOptions(
-    enableContours: true,
-    enableClassification: true,
-  ));
   bool isBusy = false;
   bool outside = true;
   late Position currentPosition;
@@ -53,6 +47,9 @@ class _PointMapsState extends State<PointMaps> {
     myLocation = LatLng(currentPosition.latitude, currentPosition.longitude);
     // }
     lokasiPalsu = position!.isMocked;
+    setState(() {
+      print("Android Lokasi ${myLocation}");
+    });
     if (myLocation != null) {
       if (!iosMapLocation) {
         iosMapLocation = true;
@@ -61,6 +58,8 @@ class _PointMapsState extends State<PointMaps> {
           CameraPosition(target: myLocation!, zoom: 19.3756);
       return await _googleMapController
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    }else{
+      locatePosition();
     }
   }
 
@@ -120,12 +119,37 @@ void setCustomMapPin() async {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text("LAT : ${myLocation?.latitude}"),
-                    Text("LNG : ${myLocation?.longitude}"),
+                    (widget.btnAdd==1)?Text("ID LOK : ${widget.idLok}"):Container(),
+                    (widget.btnAdd==1)?Text("OLD LAT : ${widget.savedLok?.latitude}"):Container(),
+                    (widget.btnAdd==1)?Text("OLD LNG : ${widget.savedLok?.longitude}"):Container(),
+                    Text("NEW LAT : ${myLocation?.latitude}"),
+                    Text("NEW LNG : ${myLocation?.longitude}"),
                   ],
                 ),
+                (widget.btnAdd==0)?
                 ElevatedButton(onPressed: (){
-              }, child: const Text("Simpan",style: TextStyle(fontSize: 10),))
+                  MapPoint.saveMapPoint("${myLocation?.latitude}", "${myLocation?.longitude}").then((value) =>updateUI(value));
+                }
+                    , child: const Text("Simpan",style: TextStyle(fontSize: 10),)):
+                ElevatedButton(onPressed: (){
+                  MapPoint.editMapPoint("${widget?.idLok}","${myLocation?.latitude}", "${myLocation?.longitude}").then((value) => {
+                  if(value){
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green,
+                      content: Text("Berhasil!",style: TextStyle(color: Colors.white),)))
+                  }else{
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.red,
+                    content: Text("Gagal , Coba Lagi!",style: TextStyle(color: Colors.white),)))
+                    }
+                  });
+                },
+                    style: ElevatedButton.styleFrom(primary: Colors.green)
+                    , child: const Text("Update",style: TextStyle(fontSize: 10),)),
+                ElevatedButton(onPressed: (){
+                  Navigator.pop(context);
+                },
+                    style: ElevatedButton.styleFrom(primary: Colors.redAccent)
+                    , child: const Text("Batal",style: TextStyle(fontSize: 10),)),
+
               ],
             ),
           )
@@ -140,6 +164,10 @@ void setCustomMapPin() async {
     } else {
       iosMapLocation = false;
     }
+    setState(() {
+      print("IOS Lokasi ${myLocation}");
+
+    });
     return;
   }
 
@@ -167,7 +195,6 @@ void setCustomMapPin() async {
               return _loadMaps(_polygons, pointAbp);
             } else {
               _requestLocation();
-              _googleMaps = false;
               return const Center(child: CircularProgressIndicator());
             }
           } else if (Platform.isIOS) {
@@ -184,11 +211,9 @@ void setCustomMapPin() async {
               return _loadMaps(_polygons, pointAbp);
             }
           }
-          _googleMaps = true;
-          return _loadMaps(_polygons, pointAbp);
+          return const Center(child: CircularProgressIndicator());
         } else {
           _loadArea();
-          _googleMaps = false;
           return const Center(child: CircularProgressIndicator());
         }
       },
@@ -201,7 +226,6 @@ void setCustomMapPin() async {
     var area = await MapAreModel.mapAreaApi("0");
     return area;
   }
-
   _requestLocation() async {
     var status = await _permission.status;
     if (status.isDenied) {
@@ -230,7 +254,6 @@ void setCustomMapPin() async {
       onMapCreated: (GoogleMapController controller) {
         _map_controller.complete(controller);
         _googleMapController = controller;
-        _googleMaps = true;
         setState(() {
           marker = Marker(
             markerId: const MarkerId('abpenergy'),
@@ -250,4 +273,16 @@ void setCustomMapPin() async {
       zoomGesturesEnabled: true,
     );
   }
+
+  updateUI(bool value){
+    if(value){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green,
+          content: Text("Berhasil!",style: TextStyle(color: Colors.white),)));
+      Navigator.pop(context,"berhasil");
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.red,
+          content: Text("Gagal , Coba Lagi!",style: TextStyle(color: Colors.white),)));
+    }
+  }
+
 }
